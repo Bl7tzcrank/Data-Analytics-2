@@ -9,9 +9,9 @@ data = '0.4,0.1;0.06,0.2'
 test = TRUE;
 
 #run getRequest() and insert the provided token to do the GET request. Outputs an xml2-object.
-getRequest<- function(){
+getRequest<- function(d){
   token <- readline(prompt="Token: ")
-  getUrl <- paste(url,operation,token,'/',data, sep="");
+  getUrl <- paste(url,operation,token,'/',d, sep="");
   if(grepl('test',getUrl) || (!test)){
     r <- GET(getUrl);
     return (r);
@@ -22,7 +22,10 @@ getRequest<- function(){
 };
 
 #Turns the response object of the get-request into a data frame
-getData<- function(){
+getData<- function(r){
   #TODO: Figure out how to turn an xml2-object into a data frame
   data <- content(r)
+  return (data);
 }
+
+#execute: getData(getRequest(data))
