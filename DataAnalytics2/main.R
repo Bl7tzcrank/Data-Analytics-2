@@ -33,26 +33,41 @@ getRequest<- function(data, token){
 };
 
 #Receives dataframe as input, turns it into a string, calls getRequest(), turns response object back into numeric and outputs a dataframe.
+#It only accesses 50 points per GET request
 #remark: run print(getData(data, token), digits=20) to see that the result is NOT rounded
 getData<- function(data, token){
-  dataAsString <- '';
-  for(row in 1:nrow(data)){
-    for(col in 1:ncol(data)){
-      dataAsString <- paste(dataAsString, as.character(data[row,col]), sep='');
-      if(col < ncol(data)){
-        dataAsString <- paste(dataAsString, ",", sep='');
+  
+  for(x in 1:floor(((nrow(data)-1)/50)+1)){
+    if(x == floor(((nrow(data)-1)/50)+1)){
+      until = nrow(data);
+    }else{
+      until = x*50;
+    }
+    datachunk = data[(((x-1)*50)+1):until,]
+    dataAsString <- '';
+    for(row in 1:nrow(datachunk)){
+      for(col in 1:ncol(datachunk)){
+        dataAsString <- paste(dataAsString, as.character(datachunk[row,col]), sep='');
+        if(col < ncol(datachunk)){
+          dataAsString <- paste(dataAsString, ",", sep='');
+        }
+      }
+      if(row < nrow(datachunk)){
+        dataAsString <- paste(dataAsString, ";", sep='');
       }
     }
-    if(row < nrow(data)){
-      dataAsString <- paste(dataAsString, ";", sep='');
-    }
+    request <- getRequest(dataAsString, token);
+    html <- content(request, "text");
+    substring <- sub(".*\\[", "", html);
+    substring <- sub("\\].*", "", substring);
+    substring <- str_extract_all(substring, "[0-9].[0-9]*", simplify = TRUE)
+    if(x==1){
+      result = cbind(datachunk,r=as.numeric(substring));
+    }else{
+      result = rbind(result,(cbind(datachunk,r=as.numeric(substring))))
+    } 
   }
-  request <- getRequest(dataAsString, token);
-  html <- content(request, "text");
-  substring <- sub(".*\\[", "", html);
-  substring <- sub("\\].*", "", substring);
-  substring <- str_extract_all(substring, "[0-9].[0-9]*", simplify = TRUE)
-  return (cbind(data,r=as.numeric(substring)));
+  return(result);
 }
 
 getRandomData <- function(n, dimensions){
@@ -104,7 +119,8 @@ predictNN <- function(NN, testData, data){
 }
 
 #execute:
-dataset <- getData(getRandomData(50,2),token);
+dataset <- getData(getRandomData(60,2),token);
+dataset <- rbind(getData(getRandomData(50,2),token))
 index <- splitData(dataset, 0.60);
 train = scalingData(dataset[index,]);
 test = scalingData(dataset[-index,])
