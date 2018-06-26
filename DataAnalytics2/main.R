@@ -88,7 +88,19 @@ scalingData <- function(data){
 neuralNetwork <- function(data){
   set.seed(2);
   NN = neuralnet(r ~ col1 + col2, data, hidden = 3, linear.output= T);
-  plot(NN);
+  return(NN);
+}
+
+#plots predicted values vs test values and outputs rmse
+predictNN <- function(NN, testData, data){
+  predict_testNN = compute(NN, testData[,c(1:(ncol(data)-1))])
+  predict_testNN = (predict_testNN$net.result * (max(data[,'r']) - min(data[,'r']))) + min(data[,'r'])
+  
+  plot(testData[,'r'], predict_testNN, col='blue', pch=16, ylab = "predicted r NN", xlab = "real r")
+  
+  abline(0,1)
+  
+  return((sum((testData[,'r'] - predict_testNN)^2) / nrow(testData)) ^ 0.5)
 }
 
 #execute:
@@ -96,5 +108,6 @@ dataset <- getData(getRandomData(50,2),token);
 index <- splitData(dataset, 0.60);
 train = scalingData(dataset[index,]);
 test = scalingData(dataset[-index,])
-
-
+NN <- neuralNetwork(train);
+plot(NN)
+predictNN(NN, test, dataset)
