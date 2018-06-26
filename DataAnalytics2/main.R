@@ -53,4 +53,17 @@ getData<- function(data, token){
   return (cbind(data,r=as.numeric(substring)));
 }
 
+getRandomData <- function(n, dimensions){
+  for (i in 1:dimensions){
+    if(c>1){
+        c <- cbind(c,runif(n, min=0, max=1));
+    }
+    else 
+    {
+      c <- (runif(n, min=0, max=1));
+    }
+  }
+  return (c);
+}
+
 #execute: getData(data, token)
