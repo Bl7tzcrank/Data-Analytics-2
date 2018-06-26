@@ -63,6 +63,7 @@ getRandomData <- function(n, dimensions){
       c <- (runif(n, min=0, max=1));
     }
   }
+  colnames(c) <- c(1:dimensions)
   return (c);
 }
 
