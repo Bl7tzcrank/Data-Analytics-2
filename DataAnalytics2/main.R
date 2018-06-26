@@ -2,10 +2,12 @@ install.packages('httr');
 install.packages('xml2');
 install.packages('XML');
 install.packages('stringr');
+install.packages('neuralnet');
 require('httr');
 require('xml2');
 require('XML');
 require('stringr');
+require('neuralnet');
 
 url = 'http://optim.uni-muenster.de:5000/';
 operation = 'api-test2D/'
@@ -76,8 +78,15 @@ splitData <- function(data, percentage){
   return (index);
 }
 
+scalingData <- function(data){
+  max = apply(data , 2 , max);
+  min = apply(data, 2 , min);
+  scaled = as.data.frame(scale(data, center = min, scale = max - min));
+  return (scaled);
+}
+
 #execute:
 dataset <- getData(getRandomData(50,2),token);
-index <- splitData(dataset, 0.60)
-train = dataset[index,]
-test = dataset[-index,]
+index <- splitData(dataset, 0.60);
+train = scalingData(dataset[index,]);
+test = scalingData(dataset[-index,])
