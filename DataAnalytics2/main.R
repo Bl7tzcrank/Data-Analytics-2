@@ -67,4 +67,17 @@ getRandomData <- function(n, dimensions){
   return (c);
 }
 
-#execute: getData(getRandomData(50,2), token)
+#splits the data into trainings and test data. Returns index that can be used to access training and test data from the dataset
+#percentage % will be used for training
+splitData <- function(data, percentage){
+  samplesize = percentage * nrow(data);
+  set.seed(80);
+  index = sample( seq_len ( nrow ( data ) ), size = samplesize );
+  return (index);
+}
+
+#execute:
+dataset <- getData(getRandomData(50,2),token);
+index <- splitData(dataset, 0.60)
+train = dataset[index,]
+test = dataset[-index,]
