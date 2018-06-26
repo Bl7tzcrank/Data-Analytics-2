@@ -11,10 +11,6 @@ require('neuralnet');
 
 url = 'http://optim.uni-muenster.de:5000/';
 operation = 'api-test2D/'
-#data: Provide one or more points
-x <- c(0.4,0.06,0.07,0.09);
-y <- c(0.1,0.2,0.2,0.01);
-data <- cbind(x,y);
 test = TRUE;
 #token
 token = '5d8096530da349e98ca4cc65b519daf7';
@@ -119,10 +115,10 @@ predictNN <- function(NN, testData, data){
 }
 
 #execute:
-dataset <- getData(getRandomData(800,2),token);
+dataset <- getData(getRandomData(1000,2),token);
 index <- splitData(dataset, 0.60);
 train = scalingData(dataset[index,]);
 test = scalingData(dataset[-index,])
 NN <- neuralNetwork(train);
-plot(NN)
+#plot(NN)
 predictNN(NN, test, dataset)
