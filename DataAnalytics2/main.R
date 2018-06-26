@@ -65,7 +65,7 @@ getRandomData <- function(n, dimensions){
       c <- (runif(n, min=0, max=1));
     }
   }
-  colnames(c) <- c(1:dimensions)
+  colnames(c) <- paste("col", 1:dimensions, sep = "")
   return (c);
 }
 
@@ -85,8 +85,16 @@ scalingData <- function(data){
   return (scaled);
 }
 
+neuralNetwork <- function(data){
+  set.seed(2);
+  NN = neuralnet(r ~ col1 + col2, data, hidden = 3, linear.output= T);
+  plot(NN);
+}
+
 #execute:
 dataset <- getData(getRandomData(50,2),token);
 index <- splitData(dataset, 0.60);
 train = scalingData(dataset[index,]);
 test = scalingData(dataset[-index,])
+
+
