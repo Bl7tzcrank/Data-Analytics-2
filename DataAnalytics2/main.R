@@ -119,8 +119,7 @@ predictNN <- function(NN, testData, data){
 }
 
 #execute:
-dataset <- getData(getRandomData(60,2),token);
-dataset <- rbind(getData(getRandomData(50,2),token))
+dataset <- getData(getRandomData(800,2),token);
 index <- splitData(dataset, 0.60);
 train = scalingData(dataset[index,]);
 test = scalingData(dataset[-index,])
