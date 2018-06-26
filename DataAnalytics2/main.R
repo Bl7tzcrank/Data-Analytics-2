@@ -3,6 +3,7 @@ install.packages('xml2');
 install.packages('XML');
 install.packages('stringr');
 install.packages('neuralnet');
+install.packages("rpart");
 require('httr');
 require('xml2');
 require('XML');
