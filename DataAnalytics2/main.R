@@ -55,7 +55,7 @@ getData<- function(data, token){
 
 getRandomData <- function(n, dimensions){
   for (i in 1:dimensions){
-    if(c>1){
+    if(i>1){
         c <- cbind(c,runif(n, min=0, max=1));
     }
     else 
@@ -66,4 +66,4 @@ getRandomData <- function(n, dimensions){
   return (c);
 }
 
-#execute: getData(data, token)
+#execute: getData(getRandomData(50,2), token)
