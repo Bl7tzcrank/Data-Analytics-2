@@ -9,6 +9,7 @@ require('xml2');
 require('XML');
 require('stringr');
 require('neuralnet');
+require('rpart');
 
 url = 'http://optim.uni-muenster.de:5000/';
 operation = 'api-test2D/'
