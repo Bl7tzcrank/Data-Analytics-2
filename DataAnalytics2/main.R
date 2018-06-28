@@ -98,7 +98,7 @@ scalingData <- function(data){
 
 neuralNetwork <- function(data){
   set.seed(2);
-  NN = neuralnet(r ~ col1 + col2, data, hidden = 3, linear.output= T);
+  NN = neuralnet(r ~ col1 + col2, data, hidden = c(3,3,3,3), linear.output= T);
   return(NN);
 }
 
@@ -115,10 +115,10 @@ predictNN <- function(NN, testData, data){
 }
 
 #execute:
-dataset <- getData(getRandomData(1000,2),token);
+dataset <- getData(getRandomData(100,2),token);
 index <- splitData(dataset, 0.60);
-train = scalingData(dataset[index,]);
-test = scalingData(dataset[-index,])
+train <- scalingData(dataset[index,]);
+test <- scalingData(dataset[-index,]);
 NN <- neuralNetwork(train);
 #plot(NN)
 predictNN(NN, test, dataset)
