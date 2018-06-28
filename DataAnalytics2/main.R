@@ -10,6 +10,7 @@ require('XML');
 require('stringr');
 require('neuralnet');
 require('rpart');
+source("support_vector_machines.R")
 
 url = 'http://optim.uni-muenster.de:5000/';
 operation = 'api-test2D/'
@@ -135,5 +136,5 @@ index <- splitData(dataset, 0.90);
 train <- scalingData(dataset[index,]);
 test <- scalingData(dataset[-index,]);
 NN <- neuralNetwork(train);
-#plot(NN)
+plot(NN)
 predictNN(NN, test, dataset)
