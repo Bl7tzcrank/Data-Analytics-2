@@ -82,6 +82,18 @@ getRandomData <- function(n, dimensions){
   return (c);
 }
 
+getGridData <- function(distance,dimensions){
+  d <- seq(0,1,distance);
+  if(dimensions == 2){
+    g <- expand.grid(d,d);
+  }
+  if(dimensions == 4){
+    g <- expand.grid(d,d,d,d);
+  }
+  colnames(g) <- paste("col", 1:dimensions, sep = "")
+  return(g);
+}
+
 #splits the data into trainings and test data. Returns index that can be used to access training and test data from the dataset
 #percentage % will be used for training
 splitData <- function(data, percentage){
@@ -117,8 +129,9 @@ predictNN <- function(NN, testData, data){
 }
 
 #execute:
-dataset <- getData(getRandomData(100,2),token);
-index <- splitData(dataset, 0.60);
+dataset <- getData(getRandomData(1000,2),token);
+dataset <- getData(getGridData(0.05,2),token);
+index <- splitData(dataset, 0.90);
 train <- scalingData(dataset[index,]);
 test <- scalingData(dataset[-index,]);
 NN <- neuralNetwork(train);
