@@ -3,11 +3,13 @@ install.packages('xml2');
 install.packages('XML');
 install.packages('stringr');
 install.packages('neuralnet');
+install.packages("rpart");
 require('httr');
 require('xml2');
 require('XML');
 require('stringr');
 require('neuralnet');
+require('rpart');
 
 url = 'http://optim.uni-muenster.de:5000/';
 operation = 'api-test2D/'
