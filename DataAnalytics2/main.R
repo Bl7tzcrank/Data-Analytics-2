@@ -141,6 +141,7 @@ NN <- neuralNetwork(train);
 plot(NN)
 predictNN(NN, test, dataset)
 
+#visualization, currently hard coded
 plotdata <- dataset[,3];
 dim(plotdata) <- c(length(c(seq(0,1,0.05))),length(c(seq(0,1,0.05))));
 rownames(plotdata) <-  c(seq(0,1,0.05));
