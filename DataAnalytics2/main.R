@@ -1,3 +1,4 @@
+####################### Start of packages ##################################
 install.packages('httr');
 install.packages('xml2');
 install.packages('XML');
@@ -13,6 +14,7 @@ require('stringr');
 require('neuralnet');
 require('rpart');
 source("support_vector_machines.R")
+####################### End of packages ##################################
 
 ####################### Start of Variables ##################################
 url = 'http://optim.uni-muenster.de:5000/';
@@ -28,6 +30,8 @@ grid_dimensions = 2;
 
 ####################### End of Variables ##################################
 
+
+####################### Start of Functions ##################################
 #Executes the GET request. Outputs an xml2-object.
 getRequest<- function(data, token){
   #token <- readline(prompt="Token: ")
@@ -139,6 +143,9 @@ predictNN <- function(NN, testData, data){
   return((sum((testData[,'r'] - predict_testNN)^2) / nrow(testData)) ^ 0.5)
 }
 
+####################### End of functions ##################################
+
+####################### Start of Executable code ##################################
 #execute: data creation
 dataset <- getData(getRandomData(1000,2),token);
 dataset <- getData(getGridData(),token);
@@ -157,3 +164,7 @@ plot_ly(x = rownames(plotdata), y = colnames(plotdata), z=plotdata, type="surfac
 NN <- neuralNetwork(train);
 plot(NN)
 predictNN(NN, test, dataset)
+
+
+
+####################### End of executable code ##################################
