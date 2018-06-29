@@ -4,6 +4,8 @@ install.packages('XML');
 install.packages('stringr');
 install.packages('neuralnet');
 install.packages("rpart");
+install.packages("plotly");
+require('plotly');
 require('httr');
 require('xml2');
 require('XML');
@@ -138,3 +140,9 @@ test <- scalingData(dataset[-index,]);
 NN <- neuralNetwork(train);
 plot(NN)
 predictNN(NN, test, dataset)
+
+plotdata <- dataset[,3];
+dim(plotdata) <- c(length(c(seq(0,1,0.05))),length(c(seq(0,1,0.05))));
+rownames(plotdata) <-  c(seq(0,1,0.05));
+colnames(plotdata) <-  c(seq(0,1,0.05));
+plot_ly(x = rownames(plotdata), y = colnames(plotdata), z=plotdata, type="surface")
