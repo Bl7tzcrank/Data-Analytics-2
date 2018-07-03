@@ -134,11 +134,11 @@ scalingData <- function(data){
 
 neuralNetwork <- function(data){
   set.seed(2);
-<<<<<<< HEAD
+
   NN = neuralnet(r ~ col1 + col2, data, hidden = c(5,4,4,4), linear.output= T, stepmax = 1e+6);
-=======
-  NN = neuralnet(r ~ col1 + col2, data, hidden = c(8,8,8,8), linear.output= F);
->>>>>>> 9f3f42fc044432556c6d472c808b0b57bcd7c4d7
+
+  #NN = neuralnet(r ~ col1 + col2, data, hidden = c(8,8,8,8), linear.output= F);
+
   return(NN);
 }
 
@@ -155,7 +155,7 @@ predictNN <- function(NN, testData, data){
 }
 
 predictNNWOTEST <-function(NN, data){
-  predict_testNN = compute(NN, data[,c(1:(ncol(dataset)-1))], rep = 1)
+  predict_testNN = compute(NN, data, rep = 1)
   #predict_testNN = (predict_testNN$net.result * (max(data[,'r']) - min(data[,'r']))) + min(data[,'r'])
   return (data.frame("col1" = data$col1, "col2" = data$col2, "r" = predict_testNN$net.result))
 }
@@ -196,10 +196,10 @@ plot(svm_tune)
 ###########################################################################
 ######################Finding the minimum##################################
 ###########################################################################
-dataset = getData(getGridData(0,0.06,0.35,0.45,20,2),token)
+dataset = getData(getGridData(0,1,0,1,20,2),token)
 dataset <- scalingData(dataset)
 NN <- neuralNetwork(dataset);
-predicted <- predictNNWOTEST(NN, getGridData(0,0.06,0.35,0.45,80,2))
+predicted <- predictNNWOTEST(NN, getGridData(0,1,0,1,80,2))
 predicted[which(predicted[,3] == min(predicted[,3])),]
 
 
