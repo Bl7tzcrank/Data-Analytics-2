@@ -163,11 +163,6 @@ getPredictionDataFrame = function(model, data){
   return(data.frame("col1" = data$col1, "col2" = data$col2, "r" = pred))
 }
 
-dataset = getData(getGridData(0.05,0.225,0.0875,0.2625,20,2),token)
-model_svm = createSVMModel(dataset)
-predDataFrame = getPredictionDataFrame(model_svm, getGridData(0.05,0.225,0.0875,0.2625,80,2))
-predDataFrame[which(predDataFrame[,3] == min(predDataFrame[,3])),]
-
 
 error <- dataset$r - pred
 svm_error <- sqrt(mean(error^2))
@@ -194,10 +189,11 @@ plot(svm_tune)
 
 ####################### Start of Executable code ##################################
 #execute: data creation
-dataset <- getData(getRandomData(1000,2),token);
+dataset = getData(getGridData(0.05,0.225,0.0875,0.2625,20,2),token)
+model_svm = createSVMModel(dataset)
+predDataFrame = getPredictionDataFrame(model_svm, getGridData(0.05,0.225,0.0875,0.2625,80,2))
+predDataFrame[which(predDataFrame[,3] == min(predDataFrame[,3])),]
 
-
-dataset <- getData(getGridData(0,1,20,2),token);
 index <- splitData(dataset, 0.80);
 train <- scalingData(dataset[index,]);
 test <- scalingData(dataset[-index,]);
