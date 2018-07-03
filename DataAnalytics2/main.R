@@ -1,5 +1,6 @@
 ####################### Start of packages ##################################
 install.packages('httr');
+install.packages("e1071")
 install.packages('xml2');
 install.packages('XML');
 install.packages('stringr');
@@ -7,6 +8,7 @@ install.packages('neuralnet');
 install.packages("rpart");
 install.packages("plotly");
 require('plotly');
+require("e1071")
 require('httr');
 require('xml2');
 require('XML');
@@ -126,6 +128,10 @@ scalingData <- function(data){
   return (scaled);
 }
 
+######################################
+## NEURAL NETWORKS ###################
+######################################
+
 neuralNetwork <- function(data){
   set.seed(2);
   NN = neuralnet(r ~ col1 + col2, data, hidden = c(8,8,8,8), linear.output= F);
@@ -143,6 +149,46 @@ predictNN <- function(NN, testData, data){
   
   return((sum((testData[,'r'] - predict_testNN)^2) / nrow(testData)) ^ 0.5)
 }
+
+#############################################
+## Support Vector Machine ###################
+#############################################
+
+createSVMModel = function(testData){
+  return(model_svm <- svm(r ~ col1+col2 , testData))
+}
+
+getPredictionDataFrame = function(model, data){
+  pred = predict(model, data)
+  return(data.frame("col1" = data$col1, "col2" = data$col2, "r" = pred))
+}
+
+dataset = getData(getGridData(0.05,0.225,0.0875,0.2625,20,2),token)
+model_svm = createSVMModel(dataset)
+predDataFrame = getPredictionDataFrame(model_svm, getGridData(0.05,0.225,0.0875,0.2625,80,2))
+predDataFrame[which(predDataFrame[,3] == min(predDataFrame[,3])),]
+
+
+error <- dataset$r - pred
+svm_error <- sqrt(mean(error^2))
+
+# perform a grid search
+svm_tune <- tune(model_svm, r ~ col1+col2, data = dataset,
+                 ranges = list(epsilon = seq(0,1,0.01), cost = 2^(2:9))
+)
+print(svm_tune)
+
+#The best model
+best_mod <- svm_tune$best.model
+best_mod_pred <- predict(best_mod, test) 
+
+error_best_mod <- test$r - best_mod_pred 
+
+# this value can be different on your computer
+# because the tune method randomly shuffles the data
+best_mod_RMSE <- sqrt(mean(error_best_mod^2))
+
+plot(svm_tune)
 
 ####################### End of functions ##################################
 

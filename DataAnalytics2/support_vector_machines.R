@@ -66,7 +66,7 @@ svm_error <- sqrt(mean(error^2))
 
 
 # perform a grid search
-svm_tune <- tune(svm, r ~ col1+col2, data = train,
+svm_tune <- tune(svm, r ~ col1+col2, data = dataset,
                  ranges = list(epsilon = seq(0,1,0.01), cost = 2^(2:9))
 )
 print(svm_tune)
