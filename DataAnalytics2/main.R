@@ -97,15 +97,16 @@ getRandomData <- function(n, dimensions){
   return (c);
 }
 
-getGridData <- function(){
-  d <- seq(grid_start,grid_end,grid_interval);
-  if(grid_dimensions == 2){
-    g <- expand.grid(d,d);
+getGridData <- function(startx, endx, starty, endy, interval, dimensions){
+  dx <- seq(startx,endx,(endx-startx)/interval);
+  dy <- seq(starty, endy, (endy-starty)/interval)
+  if(dimensions == 2){
+    g <- expand.grid(dx,dy);
   }
-  if(grid_dimensions == 4){
+  if(dimensions == 4){
     g <- expand.grid(d,d,d,d);
   }
-  colnames(g) <- paste("col", 1:grid_dimensions, sep = "")
+  colnames(g) <- paste("col", 1:dimensions, sep = "")
   return(g);
 }
 
@@ -127,13 +128,13 @@ scalingData <- function(data){
 
 neuralNetwork <- function(data){
   set.seed(2);
-  NN = neuralnet(r ~ col1 + col2, data, hidden = c(3,3,3,3), linear.output= T);
+  NN = neuralnet(r ~ col1 + col2, data, hidden = c(8,8,8,8), linear.output= F);
   return(NN);
 }
 
 #plots predicted values vs test values and outputs rmse
 predictNN <- function(NN, testData, data){
-  predict_testNN = compute(NN, testData[,c(1:(ncol(data)-1))])
+  predict_testNN = compute(NN, testData[,c(1:(ncol(data)-1))], rep = 1)
   predict_testNN = (predict_testNN$net.result * (max(data[,'r']) - min(data[,'r']))) + min(data[,'r'])
   
   plot(testData[,'r'], predict_testNN, col='blue', pch=16, ylab = "predicted r NN", xlab = "real r")
@@ -150,8 +151,8 @@ predictNN <- function(NN, testData, data){
 dataset <- getData(getRandomData(1000,2),token);
 
 
-dataset <- getData(getGridData(),token);
-index <- splitData(dataset, 0.60);
+dataset <- getData(getGridData(0,1,20,2),token);
+index <- splitData(dataset, 0.80);
 train <- scalingData(dataset[index,]);
 test <- scalingData(dataset[-index,]);
 plotdata <- dataset[,ncol(dataset)];
