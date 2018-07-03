@@ -150,6 +150,11 @@ predictNN <- function(NN, testData, data){
   return((sum((testData[,'r'] - predict_testNN)^2) / nrow(testData)) ^ 0.5)
 }
 
+predictNNWOTEST <-function(NN, data){
+  predict_testNN = compute(NN, data[,c(1:(ncol(dataset)-1))], rep = 1)
+  #predict_testNN = (predict_testNN$net.result * (max(data[,'r']) - min(data[,'r']))) + min(data[,'r'])
+  return (data.frame("col1" = data$col1, "col2" = data$col2, "r" = predict_testNN$net.result))
+}
 #############################################
 ## Support Vector Machine ###################
 #############################################
@@ -185,14 +190,29 @@ best_mod_RMSE <- sqrt(mean(error_best_mod^2))
 
 plot(svm_tune)
 
+###########################################################################
+######################Finding the minimum##################################
+###########################################################################
+dataset = getData(getGridData(0,0.06,0.35,0.45,20,2),token)
+dataset <- scalingData(dataset)
+NN <- neuralNetwork(dataset);
+predicted <- predictNNWOTEST(NN, getGridData(0,0.06,0.35,0.45,80,2))
+predicted[which(predicted[,3] == min(predicted[,3])),]
+
+
 ####################### End of functions ##################################
 
 ####################### Start of Executable code ##################################
 #execute: data creation
-dataset = getData(getGridData(0.05,0.225,0.0875,0.2625,20,2),token)
+dataset = getData(getGridData(0,1,0,1,20,2),token)
 model_svm = createSVMModel(dataset)
 predDataFrame = getPredictionDataFrame(model_svm, getGridData(0.05,0.225,0.0875,0.2625,80,2))
 predDataFrame[which(predDataFrame[,3] == min(predDataFrame[,3])),]
+
+NN <- neuralNetwork(dataset);
+predicted <- predictNNWOTEST(NN, getGridData(0,1,0,1,80,2))
+error <- dataset$r - predicted$r
+nn_error <- sqrt(mean(error^2))
 
 index <- splitData(dataset, 0.80);
 train <- scalingData(dataset[index,]);
