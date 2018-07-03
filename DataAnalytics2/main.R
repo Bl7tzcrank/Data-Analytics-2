@@ -1,9 +1,12 @@
+####################### Start of packages ##################################
 install.packages('httr');
 install.packages('xml2');
 install.packages('XML');
 install.packages('stringr');
 install.packages('neuralnet');
 install.packages("rpart");
+install.packages("plotly");
+require('plotly');
 require('httr');
 require('xml2');
 require('XML');
@@ -11,13 +14,24 @@ require('stringr');
 require('neuralnet');
 require('rpart');
 source("support_vector_machines.R")
+####################### End of packages ##################################
 
+####################### Start of Variables ##################################
 url = 'http://optim.uni-muenster.de:5000/';
 operation = 'api-test2D/'
 test = TRUE;
 #token
 token = '5d8096530da349e98ca4cc65b519daf7';
 
+grid_start = 0;
+grid_end = 1;
+grid_interval = (grid_end - grid_start)/20;
+grid_dimensions = 2;
+
+####################### End of Variables ##################################
+
+
+####################### Start of Functions ##################################
 #Executes the GET request. Outputs an xml2-object.
 getRequest<- function(data, token){
   #token <- readline(prompt="Token: ")
@@ -83,15 +97,15 @@ getRandomData <- function(n, dimensions){
   return (c);
 }
 
-getGridData <- function(distance,dimensions){
-  d <- seq(0,1,distance);
-  if(dimensions == 2){
+getGridData <- function(){
+  d <- seq(grid_start,grid_end,grid_interval);
+  if(grid_dimensions == 2){
     g <- expand.grid(d,d);
   }
-  if(dimensions == 4){
+  if(grid_dimensions == 4){
     g <- expand.grid(d,d,d,d);
   }
-  colnames(g) <- paste("col", 1:dimensions, sep = "")
+  colnames(g) <- paste("col", 1:grid_dimensions, sep = "")
   return(g);
 }
 
@@ -129,12 +143,30 @@ predictNN <- function(NN, testData, data){
   return((sum((testData[,'r'] - predict_testNN)^2) / nrow(testData)) ^ 0.5)
 }
 
-#execute:
+####################### End of functions ##################################
+
+####################### Start of Executable code ##################################
+#execute: data creation
 dataset <- getData(getRandomData(1000,2),token);
-dataset <- getData(getGridData(0.05,2),token);
+
+
+dataset <- getData(getGridData(),token);
 index <- splitData(dataset, 0.60);
 train <- scalingData(dataset[index,]);
 test <- scalingData(dataset[-index,]);
+plotdata <- dataset[,ncol(dataset)];
+
+#execute: 3D visual data exploration
+dim(plotdata) <- c(length(c(seq(grid_start,grid_end,grid_interval))),length(c(seq(grid_start,grid_end,grid_interval))));
+rownames(plotdata) <-  c(seq(grid_start,grid_end,grid_interval));
+colnames(plotdata) <-  c(seq(grid_start,grid_end,grid_interval));
+plot_ly(x = rownames(plotdata), y = colnames(plotdata), z=plotdata, type="surface")
+
+#execute: approximations
 NN <- neuralNetwork(train);
 plot(NN)
 predictNN(NN, test, dataset)
+
+
+
+####################### End of executable code ##################################
