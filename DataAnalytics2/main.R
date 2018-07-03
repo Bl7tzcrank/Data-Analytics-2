@@ -132,7 +132,7 @@ predictNN <- function(NN, testData, data){
 #execute:
 dataset <- getData(getRandomData(1000,2),token);
 dataset <- getData(getGridData(0.05,2),token);
-index <- splitData(dataset, 0.90);
+index <- splitData(dataset, 0.60);
 train <- scalingData(dataset[index,]);
 test <- scalingData(dataset[-index,]);
 NN <- neuralNetwork(train);
