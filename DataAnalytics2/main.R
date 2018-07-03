@@ -127,7 +127,7 @@ scalingData <- function(data){
 
 neuralNetwork <- function(data){
   set.seed(2);
-  NN = neuralnet(r ~ col1 + col2, data, hidden = c(3,3,3,3), linear.output= T);
+  NN = neuralnet(r ~ col1 + col2, data, hidden = c(5,4,4,4), linear.output= T, stepmax = 1e+6);
   return(NN);
 }
 
@@ -164,6 +164,8 @@ plot_ly(x = rownames(plotdata), y = colnames(plotdata), z=plotdata, type="surfac
 NN <- neuralNetwork(train);
 plot(NN)
 predictNN(NN, test, dataset)
+?neuralnet
+
 
 
 
