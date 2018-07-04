@@ -205,9 +205,11 @@ fun = function(x1, x2){
   t = data.frame("x"= x1, "y"=x2)
   compute(NN, t, rep = 1)$net.result
   }
-GA <- ga(type = "real-valued", fitness = function (x) - fun(x[1],x[2]), lower = c(0,0), upper = c(1,1))
+GA <- ga(type = "real-valued", fitness = function (x) - fun(x[1],x[2]), lower = c(0,0), upper = c(1,1), maxiter = 1000, run = 50)
 summary(GA)
 plot(GA)
+GA@solution
+compute(NN, GA@solution)
 
 
 ####################### End of functions ##################################
