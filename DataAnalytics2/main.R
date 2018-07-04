@@ -7,6 +7,8 @@ install.packages('stringr');
 install.packages('neuralnet');
 install.packages("rpart");
 install.packages("plotly");
+install.packages("GA");
+require("GA");
 require('plotly');
 require("e1071")
 require('httr');
@@ -101,7 +103,7 @@ getRandomData <- function(n, dimensions){
 
 getGridData <- function(startx, endx, starty, endy, interval, dimensions){
   dx <- seq(startx,endx,(endx-startx)/interval);
-  dy <- seq(starty, endy, (endy-starty)/interval)
+  dy <- seq(starty, endy, (endy-starty)/interval);
   if(dimensions == 2){
     g <- expand.grid(dx,dy);
   }
@@ -134,7 +136,7 @@ scalingData <- function(data){
 
 neuralNetwork <- function(data){
   set.seed(2);
-  NN = neuralnet(r ~ col1 + col2, data, hidden = c(8,8,8,8), linear.output= F);
+  NN = neuralnet(r ~ col1 + col2, data, hidden = c(5,4,4,4), linear.output= T, stepmax = 1e+6);
   return(NN);
 }
 
@@ -151,7 +153,8 @@ predictNN <- function(NN, testData, data){
 }
 
 predictNNWOTEST <-function(NN, data){
-  predict_testNN = compute(NN, data[,c(1:(ncol(dataset)-1))], rep = 1)
+  #predict_testNN = compute(NN, data[,c(1:(ncol(data)-1))], rep = 1)
+  predict_testNN = compute(NN, data, rep = 1)
   #predict_testNN = (predict_testNN$net.result * (max(data[,'r']) - min(data[,'r']))) + min(data[,'r'])
   return (data.frame("col1" = data$col1, "col2" = data$col2, "r" = predict_testNN$net.result))
 }
@@ -192,11 +195,19 @@ plot(svm_tune)
 ###########################################################################
 ######################Finding the minimum##################################
 ###########################################################################
-dataset = getData(getGridData(0,0.06,0.35,0.45,20,2),token)
+dataset = getData(getGridData(0,1,0,1,20,2),token)
 dataset <- scalingData(dataset)
 NN <- neuralNetwork(dataset);
-predicted <- predictNNWOTEST(NN, getGridData(0,0.06,0.35,0.45,80,2))
+predicted <- predictNNWOTEST(NN, getGridData(0,1,0,1,80,2))
 predicted[which(predicted[,3] == min(predicted[,3])),]
+
+fun = function(x1, x2){
+  t = data.frame("x"= x1, "y"=x2)
+  compute(NN, t, rep = 1)$net.result
+  }
+GA <- ga(type = "real-valued", fitness = function (x) - fun(x[1],x[2]), lower = c(0,0), upper = c(1,1))
+summary(GA)
+plot(GA)
 
 
 ####################### End of functions ##################################
