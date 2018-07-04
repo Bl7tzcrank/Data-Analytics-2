@@ -77,7 +77,7 @@ getData<- function(data, token){
     html <- content(request, "text");
     substring <- sub(".*\\[", "", html);
     substring <- sub("\\].*", "", substring);
-    substring <- str_extract_all(substring, "[0-9].[0-9]*", simplify = TRUE)
+    substring <- str_extract_all(substring, "[0-9].[0-9]*e?-?[0-9]*", simplify = TRUE)
     if(x==1){
       result = cbind(datachunk,r=as.numeric(substring));
     }else{
