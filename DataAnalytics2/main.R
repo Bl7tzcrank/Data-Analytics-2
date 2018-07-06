@@ -74,10 +74,12 @@ getData<- function(data, token){
       }
     }
     request <- getRequest(dataAsString, token);
+    print(request)
     html <- content(request, "text");
     substring <- sub(".*\\[", "", html);
     substring <- sub("\\].*", "", substring);
     substring <- str_extract_all(substring, "[0-9].[0-9]*e?-?[0-9]*", simplify = TRUE)
+    print(html)
     if(x==1){
       result = cbind(datachunk,r=as.numeric(substring));
     }else{
@@ -101,19 +103,25 @@ getRandomData <- function(n, dimensions){
   return (c);
 }
 
-getGridData <- function(startx, endx, starty, endy, interval, dimensions){
+getGridData2D <- function(startx, endx, starty, endy, interval){
   dx <- seq(startx,endx,(endx-startx)/interval);
   dy <- seq(starty, endy, (endy-starty)/interval);
-  if(dimensions == 2){
     g <- expand.grid(dx,dy);
-  }
-  if(dimensions == 4){
-    g <- expand.grid(d,d,d,d);
-  }
-  colnames(g) <- paste("col", 1:dimensions, sep = "")
+  
+  colnames(g) <- paste("col", 1:2, sep = "")
   return(g);
 }
 
+getGridData4D <- function(startx1, endx1, startx2, endx2, startx3, endx3, startx4, endx4, interval){
+  dx1 <- seq(startx1,endx1,(endx1-startx1)/interval);
+  dx2 <- seq(startx2, endx2, (endx2-startx2)/interval);
+  dx3 <- seq(startx3,endx3,(endx3-startx3)/interval);
+  dx4 <- seq(startx4,endx4,(endx4-startx4)/interval);
+  g <- expand.grid(dx1,dx2,dx3,dx4);
+  
+  colnames(g) <- paste("col", 1:4, sep = "")
+  return(g);
+}
 #splits the data into trainings and test data. Returns index that can be used to access training and test data from the dataset
 #percentage % will be used for training
 splitData <- function(data, percentage){
@@ -195,10 +203,10 @@ plot(svm_tune)
 ###########################################################################
 ######################Finding the minimum##################################
 ###########################################################################
-dataset = getData(getGridData(0,1,0,1,20,2),token)
+dataset = getData(getGridData4D(0,1,0,1,0,1,0,1,2),token)
 dataset <- scalingData(dataset)
 NN <- neuralNetwork(dataset);
-predicted <- predictNNWOTEST(NN, getGridData(0,1,0,1,80,2))
+predicted <- predictNNWOTEST(NN, getGridData2D(0,1,0,1,80))
 predicted[which(predicted[,3] == min(predicted[,3])),]
 
 fun = function(x1, x2){
@@ -216,16 +224,16 @@ compute(NN, GA@solution)
 
 ####################### Start of Executable code ##################################
 #execute: data creation
-dataset = getData(getGridData(0,1,0,1,20,2),token)
+dataset = getData(getGridData2D(0,1,0,1,20),token)
 
 model_svm = createSVMModel(dataset)
-predDataFrame = getPredictionDataFrame(model_svm, getGridData(0,1,0,1,80,2))
+predDataFrame = getPredictionDataFrame(model_svm, getGridData2D(0,1,0,1,80))
 predDataFrame[which(predDataFrame[,3] == min(predDataFrame[,3])),]
 error <- dataset$r - predDataFrame$r
 svm_error <- sqrt(mean(error^2))
 
 NN <- neuralNetwork(dataset);
-predicted <- predictNNWOTEST(NN, getGridData(0,1,0,1,80,2))
+predicted <- predictNNWOTEST(NN, getGridData2D(0,1,0,1,80))
 error <- dataset$r - predicted$r
 nn_error <- sqrt(mean(error^2))
 
