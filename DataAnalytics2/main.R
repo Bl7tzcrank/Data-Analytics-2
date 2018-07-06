@@ -89,7 +89,7 @@ getData<- function(data, token){
   return(result);
 }
 
-<<<<<<< HEAD
+
 #getRandomData <- function(n, dimensions){
 #  for (i in 1:dimensions){
 #    if(i>1){
@@ -105,8 +105,7 @@ getData<- function(data, token){
 #}
 
 #returns the grid for API requests
-getGridData <- function(startx, endx, starty, endy, interval, dimensions){
-=======
+
 getRandomData <- function(n, dimensions){
   for (i in 1:dimensions){
     if(i>1){
@@ -122,7 +121,7 @@ getRandomData <- function(n, dimensions){
 }
 
 getGridData2D <- function(startx, endx, starty, endy, interval){
->>>>>>> 9365ff1f805f8a6915d8ebdf743a4f6b1d5eac27
+
   dx <- seq(startx,endx,(endx-startx)/interval);
   dy <- seq(starty, endy, (endy-starty)/interval);
     g <- expand.grid(dx,dy);
@@ -183,14 +182,14 @@ predictNN <- function(NN, testData, data){
   return((sum((testData[,'r'] - predict_testNN)^2) / nrow(testData)) ^ 0.5)
 }
 
-<<<<<<< HEAD
+
 #Makes a prediction based on the Neural network provided and returns a data frame consisting of input data and calculated outputs
 getPredictionDataFrame_NN = function(model, data){
   pred = compute(model, data, rep = 1)$net.result
   return(data.frame("col1" = data$col1, "col2" = data$col2, "r" = pred))
 }
 
-=======
+
 predictNNWOTEST2D <-function(NN, data){
   #predict_testNN = compute(NN, data[,c(1:(ncol(data)-1))], rep = 1)
   predict_testNN = compute(NN, data, rep = 1)
@@ -204,7 +203,7 @@ predictNNWOTEST4D <-function(NN, data){
   #predict_testNN = (predict_testNN$net.result * (max(data[,'r']) - min(data[,'r']))) + min(data[,'r'])
   return (data.frame("col1" = data$col1, "col2" = data$col2, "col3" = data$col3, "col4" = data$col4, "r" = predict_testNN$net.result))
 }
->>>>>>> 9365ff1f805f8a6915d8ebdf743a4f6b1d5eac27
+
 #############################################
 ## Support Vector Machine ###################
 #############################################
@@ -361,15 +360,15 @@ predDataFrame[which(predDataFrame[,3] == min(predDataFrame[,3])),]
 error <- dataset$r - predDataFrame$r
 svm_error <- sqrt(mean(error^2))
 
-<<<<<<< HEAD
+
 NN <- neuralNetwork(train);
 predicted <- predictNNWOTEST(NN, getGridData(0,1,0,1,20,2))
 error <- train$r - predicted$r
-=======
+
 NN <- neuralNetwork(dataset);
 predicted <- predictNNWOTEST(NN, getGridData2D(0,1,0,1,80))
 error <- dataset$r - predicted$r
->>>>>>> 9365ff1f805f8a6915d8ebdf743a4f6b1d5eac27
+
 nn_error <- sqrt(mean(error^2))
 
 index <- splitData(dataset, 0.67);
