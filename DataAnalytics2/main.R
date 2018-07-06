@@ -8,6 +8,8 @@ install.packages('neuralnet');
 install.packages("rpart");
 install.packages("plotly");
 install.packages("GA");
+install.packages("nloptr")
+require("nloptr")
 require("GA");
 require('plotly');
 require("e1071")
@@ -87,20 +89,21 @@ getData<- function(data, token){
   return(result);
 }
 
-getRandomData <- function(n, dimensions){
-  for (i in 1:dimensions){
-    if(i>1){
-        c <- cbind(c,runif(n, min=0, max=1));
-    }
-    else 
-    {
-      c <- (runif(n, min=0, max=1));
-    }
-  }
-  colnames(c) <- paste("col", 1:dimensions, sep = "")
-  return (c);
-}
+#getRandomData <- function(n, dimensions){
+#  for (i in 1:dimensions){
+#    if(i>1){
+#        c <- cbind(c,runif(n, min=0, max=1));
+#    }
+#    else 
+#    {
+#      c <- (runif(n, min=0, max=1));
+#    }
+#  }
+#  colnames(c) <- paste("col", 1:dimensions, sep = "")
+#  return (c);
+#}
 
+#returns the grid for API requests
 getGridData <- function(startx, endx, starty, endy, interval, dimensions){
   dx <- seq(startx,endx,(endx-startx)/interval);
   dy <- seq(starty, endy, (endy-starty)/interval);
@@ -123,6 +126,7 @@ splitData <- function(data, percentage){
   return (index);
 }
 
+#Scales the data accordingly
 scalingData <- function(data){
   max = apply(data , 2 , max);
   min = apply(data, 2 , min);
@@ -136,7 +140,7 @@ scalingData <- function(data){
 
 neuralNetwork <- function(data){
   set.seed(2);
-  NN = neuralnet(r ~ col1 + col2, data, hidden = c(5,4,4,4), linear.output= T, stepmax = 1e+6);
+  NN = neuralnet(r ~ col1 + col2, data, hidden = c(5,5,5), linear.output= T, stepmax = 1e+6);
   return(NN);
 }
 
@@ -144,20 +148,17 @@ neuralNetwork <- function(data){
 predictNN <- function(NN, testData, data){
   predict_testNN = compute(NN, testData[,c(1:(ncol(data)-1))], rep = 1)
   predict_testNN = (predict_testNN$net.result * (max(data[,'r']) - min(data[,'r']))) + min(data[,'r'])
-  
   plot(testData[,'r'], predict_testNN, col='blue', pch=16, ylab = "predicted r NN", xlab = "real r")
-  
   abline(0,1)
-  
   return((sum((testData[,'r'] - predict_testNN)^2) / nrow(testData)) ^ 0.5)
 }
 
-predictNNWOTEST <-function(NN, data){
-  #predict_testNN = compute(NN, data[,c(1:(ncol(data)-1))], rep = 1)
-  predict_testNN = compute(NN, data, rep = 1)
-  #predict_testNN = (predict_testNN$net.result * (max(data[,'r']) - min(data[,'r']))) + min(data[,'r'])
-  return (data.frame("col1" = data$col1, "col2" = data$col2, "r" = predict_testNN$net.result))
+#Makes a prediction based on the Neural network provided and returns a data frame consisting of input data and calculated outputs
+getPredictionDataFrame_NN = function(model, data){
+  pred = compute(model, data, rep = 1)$net.result
+  return(data.frame("col1" = data$col1, "col2" = data$col2, "r" = pred))
 }
+
 #############################################
 ## Support Vector Machine ###################
 #############################################
@@ -170,7 +171,6 @@ getPredictionDataFrame = function(model, data){
   pred = predict(model, data)
   return(data.frame("col1" = data$col1, "col2" = data$col2, "r" = pred))
 }
-
 
 error <- dataset$r - pred
 svm_error <- sqrt(mean(error^2))
@@ -192,8 +192,17 @@ best_mod_RMSE <- sqrt(mean(error_best_mod^2))
 
 plot(svm_tune)
 
+#### Optimization Algorithms####
+
+#Function to be optimized, receives currently two inputs returns the value from the neural network
+#If you want to use a different neural network, please exchange the m with the corresponding variable
+fun_NN = function(x1, x2){
+  t = data.frame("x"= x1, "y"=x2)
+  return(compute(m, t, rep = 1)$net.result)
+}
+
 ###########################################################################
-######################Finding the minimum##################################
+##################### Finding the minimum #################################
 ###########################################################################
 dataset = getData(getGridData(0,1,0,1,20,2),token)
 dataset <- scalingData(dataset)
@@ -201,14 +210,23 @@ NN <- neuralNetwork(dataset);
 predicted <- predictNNWOTEST(NN, getGridData(0,1,0,1,80,2))
 predicted[which(predicted[,3] == min(predicted[,3])),]
 
-fun = function(x1, x2){
-  t = data.frame("x"= x1, "y"=x2)
-  compute(NN, t, rep = 1)$net.result
-  }
-GA <- ga(type = "real-valued", fitness = function (x) - fun(x[1],x[2]), lower = c(0,0), upper = c(1,1))
+
+#Implementation of the Genetic Algorithm
+GA <- ga(type = "real-valued", fitness = function (x) 1-fun_NN(x[1],x[2]), lower = c(0,0), upper = c(1,1))
 summary(GA)
 plot(GA)
 
+#Implementation of the subplex algorithm (another optimization algorithm)
+sp = c(runif(1,0,1),runif(1,0,1))
+sbplx(sp,fn = function (x) fun_NN(x[1],x[2]),lower = c(0,0), upper = c(1,1))
+
+#Visualization of the Neural network model - helps to get a better understanding of how the model looks like
+#!!!!!!!!!!!!!!!!!THIS HAS TO ADJUSTED SUCH THAT THE PLOT ALWAYS FITS THE REQUESTED GRID!!!!!!!!
+plotdata = getPredictionDataFrame_NN(m,getGridData(0,1,0,1,20,2))[,3]
+dim(plotdata) <- c(length(c(seq(grid_start,grid_end,grid_interval))),length(c(seq(grid_start,grid_end,grid_interval))));
+rownames(plotdata) <-  c(seq(grid_start,grid_end,grid_interval));
+colnames(plotdata) <-  c(seq(grid_start,grid_end,grid_interval));
+plot_ly(x = rownames(plotdata), y = colnames(plotdata), z=plotdata, type="surface")
 
 ####################### End of functions ##################################
 
@@ -222,12 +240,12 @@ predDataFrame[which(predDataFrame[,3] == min(predDataFrame[,3])),]
 error <- dataset$r - predDataFrame$r
 svm_error <- sqrt(mean(error^2))
 
-NN <- neuralNetwork(dataset);
-predicted <- predictNNWOTEST(NN, getGridData(0,1,0,1,80,2))
-error <- dataset$r - predicted$r
+NN <- neuralNetwork(train);
+predicted <- predictNNWOTEST(NN, getGridData(0,1,0,1,20,2))
+error <- train$r - predicted$r
 nn_error <- sqrt(mean(error^2))
 
-index <- splitData(dataset, 0.80);
+index <- splitData(dataset, 0.67);
 train <- scalingData(dataset[index,]);
 test <- scalingData(dataset[-index,]);
 plotdata <- dataset[,ncol(dataset)];
@@ -236,12 +254,18 @@ plotdata <- dataset[,ncol(dataset)];
 dim(plotdata) <- c(length(c(seq(grid_start,grid_end,grid_interval))),length(c(seq(grid_start,grid_end,grid_interval))));
 rownames(plotdata) <-  c(seq(grid_start,grid_end,grid_interval));
 colnames(plotdata) <-  c(seq(grid_start,grid_end,grid_interval));
-plot_ly(x = rownames(plotdata), y = colnames(plotdata), z=plotdata, type="surface")
+plot_ly(x = colnames(plotdata), y = rownames(plotdata), z=plotdata, type="surface")
 
 #execute: approximations
 NN <- neuralNetwork(train);
+predicted <- predictNNWOTEST(NN, train)
 plot(NN)
 predictNN(NN, test, dataset)
+
+predict_testNN = compute(NN, test[,-3], rep = 1)
+
+error <- test$r - predict_testNN$net.result
+nn_error <- sqrt(mean(error^2))
 
 
 
