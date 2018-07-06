@@ -74,12 +74,10 @@ getData<- function(data, token){
       }
     }
     request <- getRequest(dataAsString, token);
-    print(request)
     html <- content(request, "text");
     substring <- sub(".*\\[", "", html);
     substring <- sub("\\].*", "", substring);
     substring <- str_extract_all(substring, "[0-9].[0-9]*e?-?[0-9]*", simplify = TRUE)
-    print(html)
     if(x==1){
       result = cbind(datachunk,r=as.numeric(substring));
     }else{
@@ -142,9 +140,15 @@ scalingData <- function(data){
 ## NEURAL NETWORKS ###################
 ######################################
 
-neuralNetwork <- function(data){
+neuralNetwork2D <- function(data){
   set.seed(2);
   NN = neuralnet(r ~ col1 + col2, data, hidden = c(5,4,4,4), linear.output= T, stepmax = 1e+6);
+  return(NN);
+}
+
+neuralNetwork4D <- function(data){
+  set.seed(2);
+  NN = neuralnet(r ~ col1 + col2 + col3 + col4, data, hidden = c(4,4,4,4,4), linear.output= T, stepmax = 1e+6);
   return(NN);
 }
 
@@ -160,11 +164,18 @@ predictNN <- function(NN, testData, data){
   return((sum((testData[,'r'] - predict_testNN)^2) / nrow(testData)) ^ 0.5)
 }
 
-predictNNWOTEST <-function(NN, data){
+predictNNWOTEST2D <-function(NN, data){
   #predict_testNN = compute(NN, data[,c(1:(ncol(data)-1))], rep = 1)
   predict_testNN = compute(NN, data, rep = 1)
   #predict_testNN = (predict_testNN$net.result * (max(data[,'r']) - min(data[,'r']))) + min(data[,'r'])
   return (data.frame("col1" = data$col1, "col2" = data$col2, "r" = predict_testNN$net.result))
+}
+
+predictNNWOTEST4D <-function(NN, data){
+  #predict_testNN = compute(NN, data[,c(1:(ncol(data)-1))], rep = 1)
+  predict_testNN = compute(NN, data, rep = 1)
+  #predict_testNN = (predict_testNN$net.result * (max(data[,'r']) - min(data[,'r']))) + min(data[,'r'])
+  return (data.frame("col1" = data$col1, "col2" = data$col2, "col3" = data$col3, "col4" = data$col4, "r" = predict_testNN$net.result))
 }
 #############################################
 ## Support Vector Machine ###################
@@ -203,11 +214,17 @@ plot(svm_tune)
 ###########################################################################
 ######################Finding the minimum##################################
 ###########################################################################
-dataset = getData(getGridData4D(0,1,0,1,0,1,0,1,2),token)
+dataset = getData(getGridData4D(0,1,0,1,0,1,0,1,5),token)
 dataset <- scalingData(dataset)
-NN <- neuralNetwork(dataset);
-predicted <- predictNNWOTEST(NN, getGridData2D(0,1,0,1,80))
-predicted[which(predicted[,3] == min(predicted[,3])),]
+NN <- neuralNetwork4D(dataset);
+plot(NN)
+predicted <- predictNNWOTEST4D(NN, getGridData4D(0,1,0,1,0,1,0,1,5))
+predicted[which(predicted[,5] == min(predicted[,5])),]
+dataset[which(dataset[,5] == min(dataset[,5])),]
+
+
+error <- dataset$r - predicted$r
+nn_error <- sqrt(mean(error^2))
 
 fun = function(x1, x2){
   t = data.frame("x"= x1, "y"=x2)
