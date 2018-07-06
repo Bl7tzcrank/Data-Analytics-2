@@ -214,11 +214,75 @@ plot(svm_tune)
 ###########################################################################
 ######################Finding the minimum##################################
 ###########################################################################
-dataset = getData(getGridData4D(0,1,0,1,0,1,0,1,5),token)
+findMin <- function(interval, limit, dimension){
+  startx1 = 0
+  endx1 = 1
+  startx2 = 0
+  endx2 = 1
+  startx3 = 0
+  endx3 = 1
+  startx4 = 0
+  endx4 = 1
+  left = limit - (interval+1^dimension)
+  k = 0.1
+  while (left > 0){
+    dataset = getData(getGridData4D(startx1, endx1, startx2, endx2, startx3, endx3, startx4, endx4, interval),token)
+    NN <- neuralNetwork4D(dataset)
+    predicted <- predictNNWOTEST4D(NN, getGridData4D(startx1, endx1, startx2, endx2, startx3, endx3, startx4, endx4, interval))
+    min <- predicted[which(predicted[,5] == min(predicted[,5])),]
+    if(min$col1-k > 0){
+      startx1 = min$col1-k
+    }else{
+      startx1 = 0
+    }
+    if(min$col1+k < 1){
+      endx1 = min$col1+k
+    }else{
+      endx1 = 1
+    }
+    if(min$col1-k > 0){
+      startx2 = min$col1-k
+    }else{
+      startx2 = 0
+    }
+    if(min$col1+k < 1){
+      endx2 = min$col1+k
+    }else{
+      endx2 = 1
+    }
+    if(min$col1-k > 0){
+      startx3 = min$col1-k
+    }else{
+      startx3 = 0
+    }
+    if(min$col1+k < 1){
+      endx3 = min$col1+k
+    }else{
+      endx3 = 1
+    }
+    if(min$col1-k > 0){
+      startx4 = min$col1-k
+    }else{
+      startx4 = 0
+    }
+    if(min$col1+k < 1){
+      endx4 = min$col1+k
+    }else{
+      endx4 = 1
+    }
+    k = k/10
+    left = left - (interval+1^dimension)
+    print(min)
+  }
+  
+  
+}
+
+dataset = getData(getGridData4D(0,1,0,1,0,1,0,1,6),token)
 dataset <- scalingData(dataset)
 NN <- neuralNetwork4D(dataset);
 plot(NN)
-predicted <- predictNNWOTEST4D(NN, getGridData4D(0,1,0,1,0,1,0,1,5))
+predicted <- predictNNWOTEST4D(NN, getGridData4D(0,1,0,1,0,1,0,1,6))
 predicted[which(predicted[,5] == min(predicted[,5])),]
 dataset[which(dataset[,5] == min(dataset[,5])),]
 
