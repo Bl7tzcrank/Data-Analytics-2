@@ -89,6 +89,7 @@ getData<- function(data, token){
   return(result);
 }
 
+<<<<<<< HEAD
 #getRandomData <- function(n, dimensions){
 #  for (i in 1:dimensions){
 #    if(i>1){
@@ -105,18 +106,41 @@ getData<- function(data, token){
 
 #returns the grid for API requests
 getGridData <- function(startx, endx, starty, endy, interval, dimensions){
+=======
+getRandomData <- function(n, dimensions){
+  for (i in 1:dimensions){
+    if(i>1){
+        c <- cbind(c,runif(n, min=0, max=1));
+    }
+    else 
+    {
+      c <- (runif(n, min=0, max=1));
+    }
+  }
+  colnames(c) <- paste("col", 1:dimensions, sep = "")
+  return (c);
+}
+
+getGridData2D <- function(startx, endx, starty, endy, interval){
+>>>>>>> 9365ff1f805f8a6915d8ebdf743a4f6b1d5eac27
   dx <- seq(startx,endx,(endx-startx)/interval);
   dy <- seq(starty, endy, (endy-starty)/interval);
-  if(dimensions == 2){
     g <- expand.grid(dx,dy);
-  }
-  if(dimensions == 4){
-    g <- expand.grid(d,d,d,d);
-  }
-  colnames(g) <- paste("col", 1:dimensions, sep = "")
+  
+  colnames(g) <- paste("col", 1:2, sep = "")
   return(g);
 }
 
+getGridData4D <- function(startx1, endx1, startx2, endx2, startx3, endx3, startx4, endx4, interval){
+  dx1 <- seq(startx1,endx1,(endx1-startx1)/interval);
+  dx2 <- seq(startx2, endx2, (endx2-startx2)/interval);
+  dx3 <- seq(startx3,endx3,(endx3-startx3)/interval);
+  dx4 <- seq(startx4,endx4,(endx4-startx4)/interval);
+  g <- expand.grid(dx1,dx2,dx3,dx4);
+  
+  colnames(g) <- paste("col", 1:4, sep = "")
+  return(g);
+}
 #splits the data into trainings and test data. Returns index that can be used to access training and test data from the dataset
 #percentage % will be used for training
 splitData <- function(data, percentage){
@@ -138,9 +162,15 @@ scalingData <- function(data){
 ## NEURAL NETWORKS ###################
 ######################################
 
-neuralNetwork <- function(data){
+neuralNetwork2D <- function(data){
   set.seed(2);
   NN = neuralnet(r ~ col1 + col2, data, hidden = c(5,5,5), linear.output= T, stepmax = 1e+6);
+  return(NN);
+}
+
+neuralNetwork4D <- function(data){
+  set.seed(2);
+  NN = neuralnet(r ~ col1 + col2 + col3 + col4, data, hidden = c(4,4,4,4,4), linear.output= T, stepmax = 1e+6);
   return(NN);
 }
 
@@ -153,12 +183,28 @@ predictNN <- function(NN, testData, data){
   return((sum((testData[,'r'] - predict_testNN)^2) / nrow(testData)) ^ 0.5)
 }
 
+<<<<<<< HEAD
 #Makes a prediction based on the Neural network provided and returns a data frame consisting of input data and calculated outputs
 getPredictionDataFrame_NN = function(model, data){
   pred = compute(model, data, rep = 1)$net.result
   return(data.frame("col1" = data$col1, "col2" = data$col2, "r" = pred))
 }
 
+=======
+predictNNWOTEST2D <-function(NN, data){
+  #predict_testNN = compute(NN, data[,c(1:(ncol(data)-1))], rep = 1)
+  predict_testNN = compute(NN, data, rep = 1)
+  #predict_testNN = (predict_testNN$net.result * (max(data[,'r']) - min(data[,'r']))) + min(data[,'r'])
+  return (data.frame("col1" = data$col1, "col2" = data$col2, "r" = predict_testNN$net.result))
+}
+
+predictNNWOTEST4D <-function(NN, data){
+  #predict_testNN = compute(NN, data[,c(1:(ncol(data)-1))], rep = 1)
+  predict_testNN = compute(NN, data, rep = 1)
+  #predict_testNN = (predict_testNN$net.result * (max(data[,'r']) - min(data[,'r']))) + min(data[,'r'])
+  return (data.frame("col1" = data$col1, "col2" = data$col2, "col3" = data$col3, "col4" = data$col4, "r" = predict_testNN$net.result))
+}
+>>>>>>> 9365ff1f805f8a6915d8ebdf743a4f6b1d5eac27
 #############################################
 ## Support Vector Machine ###################
 #############################################
@@ -204,17 +250,97 @@ fun_NN = function(x1, x2){
 ###########################################################################
 ##################### Finding the minimum #################################
 ###########################################################################
-dataset = getData(getGridData(0,1,0,1,20,2),token)
-dataset <- scalingData(dataset)
-NN <- neuralNetwork(dataset);
-predicted <- predictNNWOTEST(NN, getGridData(0,1,0,1,80,2))
-predicted[which(predicted[,3] == min(predicted[,3])),]
+findMin <- function(interval, limit, dimension){
+  startx1 = 0
+  endx1 = 1
+  startx2 = 0
+  endx2 = 1
+  startx3 = 0
+  endx3 = 1
+  startx4 = 0
+  endx4 = 1
+  left = limit - (interval+1^dimension)
+  k = 0.1
+  while (left > 0){
+    dataset = getData(getGridData4D(startx1, endx1, startx2, endx2, startx3, endx3, startx4, endx4, interval),token)
+    NN <- neuralNetwork4D(dataset)
+    predicted <- predictNNWOTEST4D(NN, getGridData4D(startx1, endx1, startx2, endx2, startx3, endx3, startx4, endx4, interval))
+    min <- predicted[which(predicted[,5] == min(predicted[,5])),]
+    if(min$col1-k > 0){
+      startx1 = min$col1-k
+    }else{
+      startx1 = 0
+    }
+    if(min$col1+k < 1){
+      endx1 = min$col1+k
+    }else{
+      endx1 = 1
+    }
+    if(min$col1-k > 0){
+      startx2 = min$col1-k
+    }else{
+      startx2 = 0
+    }
+    if(min$col1+k < 1){
+      endx2 = min$col1+k
+    }else{
+      endx2 = 1
+    }
+    if(min$col1-k > 0){
+      startx3 = min$col1-k
+    }else{
+      startx3 = 0
+    }
+    if(min$col1+k < 1){
+      endx3 = min$col1+k
+    }else{
+      endx3 = 1
+    }
+    if(min$col1-k > 0){
+      startx4 = min$col1-k
+    }else{
+      startx4 = 0
+    }
+    if(min$col1+k < 1){
+      endx4 = min$col1+k
+    }else{
+      endx4 = 1
+    }
+    k = k/10
+    left = left - (interval+1^dimension)
+    print(min)
+  }
+  
+  
+}
 
+dataset = getData(getGridData4D(0,1,0,1,0,1,0,1,6),token)
+dataset <- scalingData(dataset)
+NN <- neuralNetwork4D(dataset);
+plot(NN)
+predicted <- predictNNWOTEST4D(NN, getGridData4D(0,1,0,1,0,1,0,1,6))
+predicted[which(predicted[,5] == min(predicted[,5])),]
+dataset[which(dataset[,5] == min(dataset[,5])),]
+
+
+error <- dataset$r - predicted$r
+nn_error <- sqrt(mean(error^2))
+
+<<<<<<< HEAD
 
 #Implementation of the Genetic Algorithm
 GA <- ga(type = "real-valued", fitness = function (x) 1-fun_NN(x[1],x[2]), lower = c(0,0), upper = c(1,1))
+=======
+fun = function(x1, x2){
+  t = data.frame("x"= x1, "y"=x2)
+  compute(NN, t, rep = 1)$net.result
+  }
+GA <- ga(type = "real-valued", fitness = function (x) - fun(x[1],x[2]), lower = c(0,0), upper = c(1,1), maxiter = 1000, run = 50)
+>>>>>>> 9365ff1f805f8a6915d8ebdf743a4f6b1d5eac27
 summary(GA)
 plot(GA)
+GA@solution
+compute(NN, GA@solution)
 
 #Implementation of the subplex algorithm (another optimization algorithm)
 sp = c(runif(1,0,1),runif(1,0,1))
@@ -232,17 +358,23 @@ plot_ly(x = rownames(plotdata), y = colnames(plotdata), z=plotdata, type="surfac
 
 ####################### Start of Executable code ##################################
 #execute: data creation
-dataset = getData(getGridData(0,1,0,1,20,2),token)
+dataset = getData(getGridData2D(0,1,0,1,20),token)
 
 model_svm = createSVMModel(dataset)
-predDataFrame = getPredictionDataFrame(model_svm, getGridData(0,1,0,1,80,2))
+predDataFrame = getPredictionDataFrame(model_svm, getGridData2D(0,1,0,1,80))
 predDataFrame[which(predDataFrame[,3] == min(predDataFrame[,3])),]
 error <- dataset$r - predDataFrame$r
 svm_error <- sqrt(mean(error^2))
 
+<<<<<<< HEAD
 NN <- neuralNetwork(train);
 predicted <- predictNNWOTEST(NN, getGridData(0,1,0,1,20,2))
 error <- train$r - predicted$r
+=======
+NN <- neuralNetwork(dataset);
+predicted <- predictNNWOTEST(NN, getGridData2D(0,1,0,1,80))
+error <- dataset$r - predicted$r
+>>>>>>> 9365ff1f805f8a6915d8ebdf743a4f6b1d5eac27
 nn_error <- sqrt(mean(error^2))
 
 index <- splitData(dataset, 0.67);
