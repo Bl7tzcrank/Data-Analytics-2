@@ -321,22 +321,17 @@ plot(NN)
 predicted <- predictNNWOTEST4D(NN, getGridData4D(0,1,0,1,0,1,0,1,6))
 predicted[which(predicted[,5] == min(predicted[,5])),]
 dataset[which(dataset[,5] == min(dataset[,5])),]
-
-
 error <- dataset$r - predicted$r
 nn_error <- sqrt(mean(error^2))
 
-<<<<<<< HEAD
 
 #Implementation of the Genetic Algorithm
-GA <- ga(type = "real-valued", fitness = function (x) 1-fun_NN(x[1],x[2]), lower = c(0,0), upper = c(1,1))
-=======
 fun = function(x1, x2){
   t = data.frame("x"= x1, "y"=x2)
   compute(NN, t, rep = 1)$net.result
   }
-GA <- ga(type = "real-valued", fitness = function (x) - fun(x[1],x[2]), lower = c(0,0), upper = c(1,1), maxiter = 1000, run = 50)
->>>>>>> 9365ff1f805f8a6915d8ebdf743a4f6b1d5eac27
+GA <- ga(type = "real-valued", fitness = function (x) 1 - fun(x[1],x[2]), lower = c(0,0), upper = c(1,1), maxiter = 1000, run = 50)
+
 summary(GA)
 plot(GA)
 GA@solution
