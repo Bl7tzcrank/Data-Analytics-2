@@ -24,7 +24,7 @@ source("support_vector_machines.R")
 
 ####################### Start of Variables ##################################
 url = 'http://optim.uni-muenster.de:5000/';
-operation = 'api-test2D/'
+operation = 'api-test4D/'
 test = TRUE;
 #token
 token = '5d8096530da349e98ca4cc65b519daf7';
@@ -246,6 +246,11 @@ fun_NN = function(x1, x2){
   return(compute(m, t, rep = 1)$net.result)
 }
 
+fun_NN_4D = function(x1, x2, x3, x4){
+  t = data.frame("col1"= x1, "col2"=x2, "col3"= x3, "col4"=x4)
+  return(compute(NN, t, rep = 1)$net.result)
+}
+
 ###########################################################################
 ##################### Finding the minimum #################################
 ###########################################################################
@@ -313,7 +318,20 @@ findMin <- function(interval, limit, dimension){
   
 }
 
-dataset = getData(getGridData4D(0,1,0,1,0,1,0,1,6),token)
+dataset = getData(getGridData4D(0,1,0,1,0,1,0,1,3),token)
+sort(dataset)
+
+dataset[ order(dataset[[5]]), ]
+
+merke[ order(merke[[5]]), ]
+
+#1. iteration mit 4er interval für einen tiefpunkt
+merke = dataset
+#2. iteration mit 4er interval für einen tiefpunkt [Punkt 95 aus merke]
+merke2 = dataset
+merke[ order(merke[[5]]), ]
+
+
 dataset <- scalingData(dataset)
 NN <- neuralNetwork4D(dataset);
 plot(NN)
@@ -329,7 +347,9 @@ fun = function(x1, x2){
   t = data.frame("x"= x1, "y"=x2)
   compute(NN, t, rep = 1)$net.result
   }
-GA <- ga(type = "real-valued", fitness = function (x) 1 - fun(x[1],x[2]), lower = c(0,0), upper = c(1,1), maxiter = 1000, run = 50)
+GA <- ga(type = "real-valued", fitness = function (x) {1- fun_NN_4D(x[1],x[2],x[3],x[4])}, lower = c(0,0,0,0), upper = c(1,1,1,1), maxiter = 1000, run = 50)
+
+fun_NN_4D(0.97,0.84,0.42,0.69)
 
 summary(GA)
 plot(GA)
