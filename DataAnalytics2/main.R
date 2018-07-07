@@ -217,6 +217,11 @@ getPredictionDataFrame = function(model, data){
   return(data.frame("col1" = data$col1, "col2" = data$col2, "r" = pred))
 }
 
+getPredictionDataFrame4D = function(model, data){
+  pred = predict(model, data)
+  return(data.frame("col1" = data$col1, "col2" = data$col2, "col3" = data$col3, "col4" = data$col4, "r" = pred))
+}
+
 error <- dataset$r - pred
 svm_error <- sqrt(mean(error^2))
 
