@@ -2,6 +2,8 @@ install.packages('rpart');
 install.packages('randomForest');
 install.packages('xgboost');
 install.packages('party');
+install.packages("caret")
+require("caret")
 require('rpart');
 require('randomForest');
 require('xgboost');
@@ -47,7 +49,7 @@ rmsqe <- sqrt(mean((test_predict-test)^2))
 dataset = getData(getGridData4D(0,1,0,1,0,1,0,1,4),token)
 
 index <- splitData(dataset, 0.7)
-scaledDataset = scalingData(dataset)
+
 train = dataset[index,]
 test = dataset[-index,]
 
@@ -69,4 +71,17 @@ rf_error = test_predict_rf$r - test$r
 rf_error = sqrt(mean(rf_error^2))
 rf_error
 
+#Applying the GA to find the minimum value predicted by the RandomForest
+GA <- ga(type = "real-valued", fitness = function (x) {}, lower = c(0,0,0,0), upper = c(1,1,1,1), maxiter = 1000, run = 50)
+
+fun_NN_4D(0.97,0.84,0.42,0.69)
+
+summary(GA)
+plot(GA)
+GA@solution
+compute(NN, GA@solution)
+
+
+
+#Tune the trained forrest using the caret package
 
