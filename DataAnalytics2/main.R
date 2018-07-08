@@ -244,16 +244,16 @@ plot(svm_tune)
 
 #### Optimization Algorithms####
 
-#Function to be optimized, receives currently two inputs returns the value from the neural network
-#If you want to use a different neural network, please exchange the m with the corresponding variable
-fun_NN = function(x1, x2){
-  t = data.frame("x"= x1, "y"=x2)
-  return(compute(m, t, rep = 1)$net.result)
-}
-
+#Function to be optimized, receives currently four inputs returns the value from the neural network
+#If you want to use a different neural network, please exchange NN with the corresponding variable
 fun_NN_4D = function(x1, x2, x3, x4){
   t = data.frame("col1"= x1, "col2"=x2, "col3"= x3, "col4"=x4)
   return(compute(NN, t, rep = 1)$net.result)
+}
+
+fun_SVM_4D = function(x1, x2, x3, x4){
+  t = data.frame("col1"= x1, "col2"=x2, "col3"= x3, "col4"=x4)
+  return(1 - predict(svm_model, t))
 }
 
 ###########################################################################
@@ -319,51 +319,23 @@ findMin <- function(interval, limit, dimension){
     left = left - (interval+1^dimension)
     print(min)
   }
-  
-  
 }
 
-dataset = getData(getGridData4D(0,1,0,1,0,1,0,1,3),token)
-sort(dataset)
-
-dataset[ order(dataset[[5]]), ]
-
-merke[ order(merke[[5]]), ]
-
-#1. iteration mit 4er interval für einen tiefpunkt
-merke = dataset
-#2. iteration mit 4er interval für einen tiefpunkt [Punkt 95 aus merke]
-merke2 = dataset
-merke[ order(merke[[5]]), ]
-
-
-dataset <- scalingData(dataset)
-NN <- neuralNetwork4D(dataset);
-plot(NN)
-predicted <- predictNNWOTEST4D(NN, getGridData4D(0,1,0,1,0,1,0,1,6))
-predicted[which(predicted[,5] == min(predicted[,5])),]
-dataset[which(dataset[,5] == min(dataset[,5])),]
-error <- dataset$r - predicted$r
-nn_error <- sqrt(mean(error^2))
-
-
 #Implementation of the Genetic Algorithm
-fun = function(x1, x2){
-  t = data.frame("x"= x1, "y"=x2)
-  compute(NN, t, rep = 1)$net.result
-  }
-GA <- ga(type = "real-valued", fitness = function (x) {1- fun_NN_4D(x[1],x[2],x[3],x[4])}, lower = c(0,0,0,0), upper = c(1,1,1,1), maxiter = 1000, run = 50)
+GA <- ga(type = "real-valued", fitness = function (x) {- fun_NN_4D(x[1],x[2],x[3],x[4])}, lower = c(0,0,0,0), upper = c(1,1,1,1), maxiter = 1000, run = 50)
+GA <- ga(type = "real-valued", fitness = function (x) {fun_SVM_4D(x[1],x[2],x[3],x[4])}, lower = c(0,0,0,0), upper = c(1,1,1,1), maxiter = 1000, run = 50)
 
-fun_NN_4D(0.97,0.84,0.42,0.69)
+#Real value retrieved from the API
+getData(data.frame("col1" = GA@solution[,1], "col2" = GA@solution[,2], "col3" = GA@solution[,3], "col4" = GA@solution[,4]),token)
 
-summary(GA)
-plot(GA)
-GA@solution
-compute(NN, GA@solution)
+#Value predicted by the respective models
+NN_value = fun_NN_4D(GA@solution[,1],GA@solution[,2],GA@solution[,3],GA@solution[,4])
+SVM_value = 1 - fun_SVM_4D(GA@solution[,1],GA@solution[,2],GA@solution[,3],GA@solution[,4])
+
 
 #Implementation of the subplex algorithm (another optimization algorithm)
-sp = c(runif(1,0,1),runif(1,0,1))
-sbplx(sp,fn = function (x) fun_NN(x[1],x[2]),lower = c(0,0), upper = c(1,1))
+sp = c(runif(1,0,0.5),runif(1,0,1),runif(1,0,1),runif(1,0,1))
+sbplx(sp,fn = function (x) {1 - fun_SVM_4D(x[1],x[2],x[3],x[4])},lower = c(0,0,0,0), upper = c(1,1,1,1))
 
 #Visualization of the Neural network model - helps to get a better understanding of how the model looks like
 #!!!!!!!!!!!!!!!!!THIS HAS TO ADJUSTED SUCH THAT THE PLOT ALWAYS FITS THE REQUESTED GRID!!!!!!!!

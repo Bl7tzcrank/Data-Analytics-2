@@ -93,17 +93,9 @@ points3D(test$col1, test$col2, best_mod_pred, col = "blue", pch=4, add = TRUE)
 
 dataset = getData(getGridData4D(0,1,0,1,0,1,0,1,4),token)
 
-index <- splitData(dataset, 0.7)
 scaledDataset = scalingData(dataset)
-train <- scalingData(scaledDataset[index,])
-test <- scalingData(scaledDataset[-index,])
 
-svm_tune <- tune(svm, r ~ col1+col2+col3+col4, data = train, kernel = "radial", ranges = list(epsilon = c(0, 0.01, 0.1, 0.5, 1), cost = 2^(6:10)))
+#function performes automatically a 10-fold cross validation, therefore no split in training and test data is required
+svm_tune <- tune(svm, r ~ col1+col2+col3+col4, data = scaledDataset, kernel = "radial", ranges = list(gamma = seq(0,1,0.25), epsilon = c(0, 0.01, 0.1, 0.5, 1), cost = 2^(1:7)))
 svm_tune$best.performance
 svm_tune$best.parameters
-predsvm4D = getPredictionDataFrame4D(svm_tune$best.model, test[,-5])
-error <- test$r - predsvm4D$r
-svm_error <- sqrt(mean(error^2))
-svm_error
-
-
