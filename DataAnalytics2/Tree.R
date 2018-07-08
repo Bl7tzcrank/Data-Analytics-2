@@ -53,18 +53,20 @@ test = dataset[-index,]
 
 rf = randomForest(r ~ col1 + col2 + col3 + col4, data = train)
 rf
+#predict the values for the test set
 test_predict_rf = getPredictionDataFrame4D(rf, test[,-5])
+#predict the values for the whole initial dataset
 predicted_rf = getPredictionDataFrame4D(rf, dataset[,-5])
+#sort those predictions by the dependent variable and compare the minima
 test_predict_rf = sort(test_predict_rf[,5], decreasing = TRUE)
 predicted_rf = sort(predicted_rf[,5], decreasing = TRUE)
-?sort
+
 min(predicted_rf$r)
 min(dataset$r)
 
-
-
+#compute the mse for the trained model according to the holdout-test set
 rf_error = test_predict_rf$r - test$r
 rf_error = sqrt(mean(rf_error^2))
 rf_error
 
-?randomForest
+
