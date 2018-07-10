@@ -9,6 +9,10 @@ install.packages("rpart");
 install.packages("plotly");
 install.packages("GA");
 install.packages("nloptr")
+install.packages("plot3D")
+install.packages("plot3Drgl")
+require("plot3D")
+require("plot3Drgl")
 require("nloptr")
 require("GA");
 require('plotly');
@@ -106,29 +110,14 @@ getData<- function(data, token){
 
 #returns the grid for API requests
 
-getRandomData <- function(n, dimensions){
-  for (i in 1:dimensions){
-    if(i>1){
-        c <- cbind(c,runif(n, min=0, max=1));
-    }
-    else 
-    {
-      c <- (runif(n, min=0, max=1));
-    }
-  }
-  colnames(c) <- paste("col", 1:dimensions, sep = "")
-  return (c);
-}
-
-getGridData2D <- function(startx, endx, starty, endy, interval){
-
-  dx <- seq(startx,endx,(endx-startx)/interval);
-  dy <- seq(starty, endy, (endy-starty)/interval);
-    g <- expand.grid(dx,dy);
-  
-  colnames(g) <- paste("col", 1:2, sep = "")
-  return(g);
-}
+#getGridData2D <- function(startx, endx, starty, endy, interval){
+#  dx <- seq(startx,endx,(endx-startx)/interval);
+#  dy <- seq(starty, endy, (endy-starty)/interval);
+#    g <- expand.grid(dx,dy);
+#  
+#  colnames(g) <- paste("col", 1:2, sep = "")
+#  return(g);
+#}
 
 getGridData4D <- function(startx1, endx1, startx2, endx2, startx3, endx3, startx4, endx4, interval){
   dx1 <- seq(startx1,endx1,(endx1-startx1)/interval);
@@ -161,11 +150,11 @@ scalingData <- function(data){
 ## NEURAL NETWORKS ###################
 ######################################
 
-neuralNetwork2D <- function(data){
-  set.seed(2);
-  NN = neuralnet(r ~ col1 + col2, data, hidden = c(5,5,5), linear.output= T, stepmax = 1e+6);
-  return(NN);
-}
+#neuralNetwork2D <- function(data){
+#  set.seed(2);
+#  NN = neuralnet(r ~ col1 + col2, data, hidden = c(5,5,5), linear.output= T, stepmax = 1e+6);
+#  return(NN);
+#}
 
 neuralNetwork4D <- function(data){
   set.seed(2);
@@ -174,13 +163,13 @@ neuralNetwork4D <- function(data){
 }
 
 #plots predicted values vs test values and outputs rmse
-predictNN <- function(NN, testData, data){
-  predict_testNN = compute(NN, testData[,c(1:(ncol(data)-1))], rep = 1)
-  predict_testNN = (predict_testNN$net.result * (max(data[,'r']) - min(data[,'r']))) + min(data[,'r'])
-  plot(testData[,'r'], predict_testNN, col='blue', pch=16, ylab = "predicted r NN", xlab = "real r")
-  abline(0,1)
-  return((sum((testData[,'r'] - predict_testNN)^2) / nrow(testData)) ^ 0.5)
-}
+#predictNN <- function(NN, testData, data){
+#  predict_testNN = compute(NN, testData[,c(1:(ncol(data)-1))], rep = 1)
+#  predict_testNN = (predict_testNN$net.result * (max(data[,'r']) - min(data[,'r']))) + min(data[,'r'])
+#  plot(testData[,'r'], predict_testNN, col='blue', pch=16, ylab = "predicted r NN", xlab = "real r")
+#  abline(0,1)
+#  return((sum((testData[,'r'] - predict_testNN)^2) / nrow(testData)) ^ 0.5)
+#}
 
 
 #Makes a prediction based on the Neural network provided and returns a data frame consisting of input data and calculated outputs
@@ -190,17 +179,13 @@ getPredictionDataFrame_NN = function(model, data){
 }
 
 
-predictNNWOTEST2D <-function(NN, data){
-  #predict_testNN = compute(NN, data[,c(1:(ncol(data)-1))], rep = 1)
-  predict_testNN = compute(NN, data, rep = 1)
-  #predict_testNN = (predict_testNN$net.result * (max(data[,'r']) - min(data[,'r']))) + min(data[,'r'])
-  return (data.frame("col1" = data$col1, "col2" = data$col2, "r" = predict_testNN$net.result))
-}
+#predictNNWOTEST2D <-function(NN, data){
+#  predict_testNN = compute(NN, data, rep = 1)
+#  return (data.frame("col1" = data$col1, "col2" = data$col2, "r" = predict_testNN$net.result))
+#}
 
 predictNNWOTEST4D <-function(NN, data){
-  #predict_testNN = compute(NN, data[,c(1:(ncol(data)-1))], rep = 1)
   predict_testNN = compute(NN, data, rep = 1)
-  #predict_testNN = (predict_testNN$net.result * (max(data[,'r']) - min(data[,'r']))) + min(data[,'r'])
   return (data.frame("col1" = data$col1, "col2" = data$col2, "col3" = data$col3, "col4" = data$col4, "r" = predict_testNN$net.result))
 }
 
@@ -212,35 +197,15 @@ createSVMModel = function(testData){
   return(model_svm <- svm(r ~ col1+col2 , testData))
 }
 
-getPredictionDataFrame = function(model, data){
-  pred = predict(model, data)
-  return(data.frame("col1" = data$col1, "col2" = data$col2, "r" = pred))
-}
+#getPredictionDataFrame = function(model, data){
+#  pred = predict(model, data)
+#  return(data.frame("col1" = data$col1, "col2" = data$col2, "r" = pred))
+#}
 
 getPredictionDataFrame4D = function(model, data){
   pred = predict(model, data)
   return(data.frame("col1" = data$col1, "col2" = data$col2, "col3" = data$col3, "col4" = data$col4, "r" = pred))
 }
-
-error <- dataset$r - pred
-svm_error <- sqrt(mean(error^2))
-
-# perform a grid search
-svm_tune <- tune(model_svm, r ~ col1+col2, data = dataset,
-                 ranges = list(epsilon = seq(0,1,0.01), cost = 2^(2:9))
-)
-print(svm_tune)
-#The best model
-best_mod <- svm_tune$best.model
-best_mod_pred <- predict(best_mod, test) 
-
-error_best_mod <- test$r - best_mod_pred 
-
-# this value can be different on your computer
-# because the tune method randomly shuffles the data
-best_mod_RMSE <- sqrt(mean(error_best_mod^2))
-
-plot(svm_tune)
 
 #### Optimization Algorithms####
 
@@ -321,9 +286,53 @@ findMin <- function(interval, limit, dimension){
   }
 }
 
+dataset = getData(getGridData4D(0,1,0,1,0,1,0,1,4),token)
+scaledDataset = scalingData(dataset)
+svm_tune <- tune(svm, r ~ col1+col2+col3+col4, data = scaledDataset, kernel = "radial", ranges = list(gamma = seq(0,1,0.25), epsilon = c(0,0.0001, 0.01, 0.1, 0.5, 1), cost = 2^(1:7)))
+svm_tune$best.performance
+svm_tune$best.parameters
+svm_model = svm_tune$best.model
+pred = getPredictionDataFrame4D(svm_model,getGridData4D(0,1,0,1,0,1,0,1,10))
+
+
+
+merke = c()
+
+for (i in seq(0,1,by = 0.1)) {
+  for (k in seq(0,1, by = 0.1)) {
+    p = pred[which(pred$col1 == i & pred$col2 == k),]
+    tmp = p[order(p[,5], decreasing = FALSE),]
+    merke = append(merke, which(pred$r == tmp[ order(tmp[,5], decreasing = FALSE), ][1,5]))
+  } 
+}
+
+merke2 = c()
+
+for (i in seq(0,1,by = 0.1)) {
+  for (k in seq(0,1, by = 0.1)) {
+    p = pred[which(pred$col3 == i & pred$col4 == k),]
+    tmp = p[order(p[,5], decreasing = FALSE),]
+    merke2 = append(merke2, which(pred$r == tmp[ order(tmp[,5], decreasing = FALSE), ][1,5]))
+  } 
+}
+
+
+plot_ly(pred, x = pred[merke,1], y = pred[merke,2], z = pred[merke,5], text = pred[merke,3], color = pred[merke,4])
+
+scatter3D(bty = "b2", x = pred[merke,1], xlab = "col1", y = pred[merke,2], ylab = "col2", z = pred[merke,5], zlab = "r", main = "text = col3; color = col4", cex = 1, pch = 19, theta = 10, phi = 10, colvar = pred[merke,4],ticktype = "detailed")
+text3D(x= pred[merke,1], y = pred[merke,2], z = pred[merke,5],  labels = round(pred[merke,3],2),add = TRUE, colkey = FALSE, cex = 1)
+plotrgl()
+
+
+scatter3D(bty = "b2", x = pred[merke2,3], xlab = "col3", y = pred[merke2,4], ylab = "col4", z = pred[merke2,5], zlab = "r", main = "text = col1; color = col2", cex = 1, pch = 19, theta = 10, phi = 10, colvar = pred[merke2,2],ticktype = "detailed")
+text3D(x= pred[merke2,3], y = pred[merke2,4], z = pred[merke2,5],  labels = round(pred[merke2,1],2),add = TRUE, colkey = FALSE, cex = 1)
+plotrgl()
+
+
+
 #Implementation of the Genetic Algorithm
 GA <- ga(type = "real-valued", fitness = function (x) {- fun_NN_4D(x[1],x[2],x[3],x[4])}, lower = c(0,0,0,0), upper = c(1,1,1,1), maxiter = 1000, run = 50)
-GA <- ga(type = "real-valued", fitness = function (x) {fun_SVM_4D(x[1],x[2],x[3],x[4])}, lower = c(0,0,0,0), upper = c(1,1,1,1), maxiter = 1000, run = 50)
+GA <- ga(type = "real-valued", fitness = function (x) {fun_SVM_4D(x[1],x[2],x[3],x[4])}, lower = c(0.7,0,0.4,0), upper = c(1,0.3,0.8,1), maxiter = 1000, run = 50)
 
 #Real value retrieved from the API
 getData(data.frame("col1" = GA@solution[,1], "col2" = GA@solution[,2], "col3" = GA@solution[,3], "col4" = GA@solution[,4]),token)
@@ -332,18 +341,17 @@ getData(data.frame("col1" = GA@solution[,1], "col2" = GA@solution[,2], "col3" = 
 NN_value = fun_NN_4D(GA@solution[,1],GA@solution[,2],GA@solution[,3],GA@solution[,4])
 SVM_value = 1 - fun_SVM_4D(GA@solution[,1],GA@solution[,2],GA@solution[,3],GA@solution[,4])
 
-
 #Implementation of the subplex algorithm (another optimization algorithm)
 sp = c(runif(1,0,0.5),runif(1,0,1),runif(1,0,1),runif(1,0,1))
 sbplx(sp,fn = function (x) {1 - fun_SVM_4D(x[1],x[2],x[3],x[4])},lower = c(0,0,0,0), upper = c(1,1,1,1))
 
 #Visualization of the Neural network model - helps to get a better understanding of how the model looks like
 #!!!!!!!!!!!!!!!!!THIS HAS TO ADJUSTED SUCH THAT THE PLOT ALWAYS FITS THE REQUESTED GRID!!!!!!!!
-plotdata = getPredictionDataFrame_NN(m,getGridData(0,1,0,1,20,2))[,3]
-dim(plotdata) <- c(length(c(seq(grid_start,grid_end,grid_interval))),length(c(seq(grid_start,grid_end,grid_interval))));
-rownames(plotdata) <-  c(seq(grid_start,grid_end,grid_interval));
-colnames(plotdata) <-  c(seq(grid_start,grid_end,grid_interval));
-plot_ly(x = rownames(plotdata), y = colnames(plotdata), z=plotdata, type="surface")
+#plotdata = getPredictionDataFrame_NN(m,getGridData(0,1,0,1,20,2))[,3]
+#dim(plotdata) <- c(length(c(seq(grid_start,grid_end,grid_interval))),length(c(seq(grid_start,grid_end,grid_interval))));
+#rownames(plotdata) <-  c(seq(grid_start,grid_end,grid_interval));
+#colnames(plotdata) <-  c(seq(grid_start,grid_end,grid_interval));
+#plot_ly(x = rownames(plotdata), y = colnames(plotdata), z=plotdata, type="surface")
 
 ####################### End of functions ##################################
 

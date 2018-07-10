@@ -5,7 +5,6 @@ install.packages("plotly");
 require('plotly');
 require(plot3D)
 require(e1071)
-source("main.R")
 
 #Create a data frame of the data
 dataset = getData(getGridData(0,1,20,2),token)
