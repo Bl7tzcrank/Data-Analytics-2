@@ -294,10 +294,8 @@ svm_tune$best.parameters
 svm_model = svm_tune$best.model
 pred = getPredictionDataFrame4D(svm_model,getGridData4D(0,1,0,1,0,1,0,1,10))
 
-
-
+#Identifies the lowest r value per point in the grid
 merke = c()
-
 for (i in seq(0,1,by = 0.1)) {
   for (k in seq(0,1, by = 0.1)) {
     p = pred[which(pred$col1 == i & pred$col2 == k),]
@@ -306,8 +304,8 @@ for (i in seq(0,1,by = 0.1)) {
   } 
 }
 
+#Identifies the lowest r value per point in the grid
 merke2 = c()
-
 for (i in seq(0,1,by = 0.1)) {
   for (k in seq(0,1, by = 0.1)) {
     p = pred[which(pred$col3 == i & pred$col4 == k),]
@@ -316,19 +314,18 @@ for (i in seq(0,1,by = 0.1)) {
   } 
 }
 
-
+#Visualization of the data; first col1/col2 as grid, then col3/clo4 as grid
 plot_ly(pred, x = pred[merke,1], y = pred[merke,2], z = pred[merke,5], text = pred[merke,3], color = pred[merke,4])
 
 scatter3D(bty = "b2", x = pred[merke,1], xlab = "col1", y = pred[merke,2], ylab = "col2", z = pred[merke,5], zlab = "r", main = "text = col3; color = col4", cex = 1, pch = 19, theta = 10, phi = 10, colvar = pred[merke,4],ticktype = "detailed")
 text3D(x= pred[merke,1], y = pred[merke,2], z = pred[merke,5],  labels = round(pred[merke,3],2),add = TRUE, colkey = FALSE, cex = 1)
 plotrgl()
 
-
 scatter3D(bty = "b2", x = pred[merke2,3], xlab = "col3", y = pred[merke2,4], ylab = "col4", z = pred[merke2,5], zlab = "r", main = "text = col1; color = col2", cex = 1, pch = 19, theta = 10, phi = 10, colvar = pred[merke2,2],ticktype = "detailed")
 text3D(x= pred[merke2,3], y = pred[merke2,4], z = pred[merke2,5],  labels = round(pred[merke2,1],2),add = TRUE, colkey = FALSE, cex = 1)
 plotrgl()
 
-
+#Based on the information derived from the visual representation, the GA has to be adjusted
 
 #Implementation of the Genetic Algorithm
 GA <- ga(type = "real-valued", fitness = function (x) {- fun_NN_4D(x[1],x[2],x[3],x[4])}, lower = c(0,0,0,0), upper = c(1,1,1,1), maxiter = 1000, run = 50)
