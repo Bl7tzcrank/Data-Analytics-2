@@ -158,7 +158,7 @@ scalingData <- function(data){
 
 neuralNetwork4D <- function(data){
   set.seed(2);
-  NN = neuralnet(r ~ col1 + col2 + col3 + col4, data, hidden = c(4,4,4,4,4), linear.output= T, stepmax = 1e+6);
+  NN = neuralnet(r ~ col1 + col2 + col3 + col4, data, hidden = rep(c(100),100), linear.output= T, stepmax = 1e+6);
   return(NN);
 }
 
@@ -226,6 +226,11 @@ fun_SVM_4D = function(x1, x2, x3, x4){
 ###########################################################################
 dataset = getData(getGridData4D(0,1,0,1,0,1,0,1,4),token)
 scaledDataset = scalingData(dataset)
+NN <- neuralNetwork4D(dataset);
+predicted <- predictNNWOTEST4D(NN, getGridData4D(0,1,0,1,0,1,0,1,4))
+error <- dataset$r - predicted$r
+nn_error <- sqrt(mean(error^2))
+
 svm_tune <- tune(svm, r ~ col1+col2+col3+col4, data = scaledDataset, kernel = "radial", ranges = list(gamma = seq(0,1,0.25), epsilon = c(0,0.0001, 0.01, 0.1, 0.5, 1), cost = 2^(1:7)))
 svm_tune$best.performance
 svm_tune$best.parameters
@@ -305,8 +310,8 @@ NN <- neuralNetwork(train);
 predicted <- predictNNWOTEST(NN, getGridData(0,1,0,1,20,2))
 error <- train$r - predicted$r
 
-NN <- neuralNetwork(dataset);
-predicted <- predictNNWOTEST(NN, getGridData2D(0,1,0,1,80))
+NN <- neuralNetwork4D(dataset);
+predicted <- predictNNWOTEST4D(NN, getGridData2D(0,1,0,1,80))
 error <- dataset$r - predicted$r
 
 nn_error <- sqrt(mean(error^2))
