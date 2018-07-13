@@ -30,7 +30,7 @@ source("support_vector_machines.R")
 
 ####################### Start of Variables ##################################
 url = 'http://optim.uni-muenster.de:5000/';
-operation = 'api-test4D/'
+operation = 'api-4Dtest/'
 test = TRUE;
 #token
 token = '5d8096530da349e98ca4cc65b519daf7';
@@ -42,13 +42,24 @@ dataset = data.frame("col1"=NULL, "col2"=NULL, "col3"=NULL, "col4"=NULL, "r"=NUL
 #grid_interval = (grid_end - grid_start)/20;
 #grid_dimensions = 2;
 
+secondIt = dataset
+
+#dataset = read.csv("prod.csv")
 
 
-#dataset = data.get.grid(0,1,0,1,0,1,0,1,3,token)
+#valley1
+#dataset = data.get.grid(0,0.1,0.75,0.85,0,0.1,0.69,0.79,2,token)
+#valley2
+#dataset = data.get.grid(0.29,0.39,0.21,0.31,0.36,0.46,0.03,0.13,2,token)
+#valley3
+#dataset = data.get.grid(0.54,0.64,0.65,0.75,0.3,0.4,0.65,0.75,2,token)
+#Valley4
+#dataset = data.get.grid(0.9,1,0.1,0.2,0.9,1,0.6,0.7,2,token)
+
 
 #dataset = data.get.point(0,0,0,0,token)
 
-#write.csv(dataset, file = "prod.csv")
+write.csv(dataset, file = "prod_2it4.csv")
 
 ####################### End of Variables ##################################
 
@@ -296,88 +307,6 @@ fun_SVM_4D = function(x1, x2, x3, x4,int_model){
   return(1 - predict(int_model, t))
 }
 
-###########################################################################
-##################### Finding the minimum #################################
-###########################################################################
-<<<<<<< HEAD
-findMin <- function(interval, limit, dimension){
-  startx1 = 0
-  endx1 = 1
-  startx2 = 0
-  endx2 = 1
-  startx3 = 0
-  endx3 = 1
-  startx4 = 0
-  endx4 = 1
-  left = limit - (interval+1^dimension)
-  k = 0.1
-  while (left > 0){
-    dataset = getData(getGridData4D(startx1, endx1, startx2, endx2, startx3, endx3, startx4, endx4, interval),token)
-    NN <- neuralNetwork4D(dataset)
-    predicted <- predictNNWOTEST4D(NN, getGridData4D(startx1, endx1, startx2, endx2, startx3, endx3, startx4, endx4, interval))
-    min <- predicted[which(predicted[,5] == min(predicted[,5])),]
-    if(min$col1-k > 0){
-      startx1 = min$col1-k
-    }else{
-      startx1 = 0
-    }
-    if(min$col1+k < 1){
-      endx1 = min$col1+k
-    }else{
-      endx1 = 1
-    }
-    if(min$col1-k > 0){
-      startx2 = min$col1-k
-    }else{
-      startx2 = 0
-    }
-    if(min$col1+k < 1){
-      endx2 = min$col1+k
-    }else{
-      endx2 = 1
-    }
-    if(min$col1-k > 0){
-      startx3 = min$col1-k
-    }else{
-      startx3 = 0
-    }
-    if(min$col1+k < 1){
-      endx3 = min$col1+k
-    }else{
-      endx3 = 1
-    }
-    if(min$col1-k > 0){
-      startx4 = min$col1-k
-    }else{
-      startx4 = 0
-    }
-    if(min$col1+k < 1){
-      endx4 = min$col1+k
-    }else{
-      endx4 = 1
-    }
-    k = k/10
-    left = left - (interval+1^dimension)
-    print(min)
-  }
-}
-
-#Retrieve Data
-#Initial data retrieval
-#dataset = data.get.grid(0,1,0,1,0,1,0,1,3,token)
-
-#test_all = data.get.grid(0,1,0,1,0,1,0,1,10,token)
-
-
-
-#Examplary
-#Round 1 0.05 interval around the minimum
-#valley1: 0;0.16;0.66,0.00
-#dataset = data.get.grid(0,0.1,0.1,0.2,0.6,0.7,0.0,0.1,2,token)
-
-#valley2: 0.93;0.89;0.29,0.66
-#dataset = data.get.grid(0.85,0.95,0.85,0.95,0.25,0.35,0.60,0.70,2,token)
-=======
 dataset = getData(getGridData4D(0,1,0,1,0,1,0,1,4),token)
 scaledDataset = scalingData(dataset)
 NN <- neuralNetwork4D(dataset);
@@ -400,7 +329,7 @@ for (i in seq(0,1,by = 0.1)) {
     merke = append(merke, which(pred$r == tmp[ order(tmp[,5], decreasing = FALSE), ][1,5]))
   } 
 }
->>>>>>> a93bbd67ee20cf8deba9ad34c29a442824a524e2
+
 
 #valley3: 0.30;0.37;0.048,0.68
 #dataset = data.get.grid(0.25,0.35,0.35,0.45,0,0.1,0.65,0.75,2,token)
@@ -445,9 +374,9 @@ subset_model_visualization <- function(col1_start,col2_start,col3_start,col4_sta
       merke = append(merke, which(pred$r == tmp[ order(tmp[,5], decreasing = FALSE), ][1,5]))
     } 
   }
-  scatter3D(bty = "b2", x = pred[merke,1], xlab = "col1", y = pred[merke,2], ylab = "col2", z = pred[merke,5], zlab = "r", main = "text = col3; color = col4", cex = 1, pch = 19, theta = 10, phi = 10, colvar = pred[merke,4],ticktype = "detailed")
-  text3D(x= pred[merke,1], y = pred[merke,2], z = pred[merke,5],  labels = round(pred[merke,3],2),add = TRUE, colkey = FALSE, cex = 1)
-  plotrgl()
+  #scatter3D(bty = "b2", x = pred[merke,1], xlab = "col1", y = pred[merke,2], ylab = "col2", z = pred[merke,5], zlab = "r", main = "text = col3; color = col4", cex = 1, pch = 19, theta = 10, phi = 10, colvar = pred[merke,4],ticktype = "detailed")
+  #text3D(x= pred[merke,1], y = pred[merke,2], z = pred[merke,5],  labels = round(pred[merke,3],2),add = TRUE, colkey = FALSE, cex = 1)
+  #plotrgl()
   print("Visualization created")
   
   print("Search valleys")
@@ -467,18 +396,39 @@ subset_model_visualization <- function(col1_start,col2_start,col3_start,col4_sta
   return (list("subset" = subset_valley, "model" = model,"valleys" = valleys, "best_tune"=svm_tune ))
 }
 
-model = subset_model_visualization(0,0,0,0,1,20)
+
+
+model = subset_model_visualization(0,0.75,0,0.69,0.1,20)
+model = subset_model_visualization(0.29,0.21,0.36,0.03,0.1,20)
+model = subset_model_visualization(0.54,0.65,0.3,0.65,0.1,20)
+model = subset_model_visualization(0.9,0.1,0.9,0.6,0.1,20)
+
+
+
+
 
 model$best_tune$best.performance
 
+
+model$valleys
+
+
+
 GA <- ga(type = "real-valued", fitness = function (x) {fun_SVM_4D(x[1],x[2],x[3],x[4],model$model)}, lower = c(0,0,0,0), upper = c(1,1,1,1), maxiter = 1000, run = 50)
 
-SVM_value = 1 - fun_SVM_4D((2/3),(1/3),(1/3),(1/3),model$model)
+SVM_value = 1 - fun_SVM_4D(GA@solution[1],GA@solution[2],GA@solution[3],GA@solution[4],model$model)
 
+GA@solution
 
 #Visualization of the data; first col1/col2 as grid, then col3/clo4 as grid
 
 plot_ly(pred, x = pred[merke,1], y = pred[merke,2], z = pred[merke,5], text = pred[merke,3], color = pred[merke,4])
+
+
+scatter3D(bty = "b2", x = dataset[,1], xlab = "col1", y = dataset[,2], ylab = "col2", z = dataset[,5], zlab = "r", main = "text = col3; color = col4", cex = 1, pch = 19, theta = 10, phi = 10, colvar = dataset[,4],ticktype = "detailed")
+text3D(x= dataset[,1], y = dataset[,2], z = dataset[,5],  labels = round(dataset[,3],2),add = TRUE, colkey = FALSE, cex = 1)
+plotrgl()
+
 
 scatter3D(bty = "b2", x = pred[merke,1], xlab = "col1", y = pred[merke,2], ylab = "col2", z = pred[merke,5], zlab = "r", main = "text = col3; color = col4", cex = 1, pch = 19, theta = 10, phi = 10, colvar = pred[merke,4],ticktype = "detailed")
 text3D(x= pred[merke,1], y = pred[merke,2], z = pred[merke,5],  labels = round(pred[merke,3],2),add = TRUE, colkey = FALSE, cex = 1)
@@ -497,6 +447,48 @@ GA <- ga(type = "real-valued", fitness = function (x) {fun_SVM_4D(x[1],x[2],x[3]
 #Value predicted by the respective models
 NN_value = fun_NN_4D(GA@solution[,1],GA@solution[,2],GA@solution[,3],GA@solution[,4])
 SVM_value = 1 - fun_SVM_4D(GA@solution[,1],GA@solution[,2],GA@solution[,3],GA@solution[,4])
+
+index <- splitData(dataset, 0.8);
+train <- (dataset[index,]);
+test <- (dataset[-index,]);
+
+bst <-xgboost(data = as.matrix(train[,-5]), label = as.matrix(train[,5]), 
+              max_depth = 15, eta = 1, nthread = 1, nrounds = 30, booster = "gbtree",
+              objective = "reg:linear")
+
+cv <- xgb.cv(data = as.matrix(dataset),label =as.matrix(dataset[,5]) , nrounds = 20, nthread = 1, nfold = 10, metrics = "rmse",
+             max_depth = 12, eta = 0.5, objective = "reg:linear", prediction = TRUE, callbacks = list(cb.cv.predict(save_models = TRUE)))
+
+pred <- predict(bst, as.matrix(test[,-5]))
+
+pred <- predict(bst, as.matrix(getGridData4D(0,1,0,1,0,1,0,1,10)))
+
+typeof(pred)
+
+unlist(pred)
+
+
+
+as.data.frame(getGridData4D(0,1,0,1,0,1,0,1,10),pred[1])
+
+pred
+
+
+a = cbind(getGridData4D(0,1,0,1,0,1,0,1,10),data.frame("r" = unlist(pred)))
+
+merke_dataset = c()
+for (i in seq(0,1,by = 0.1)) {
+  for (k in seq(0,1, by = 0.1)) {
+    p = a[which(a$col1 == i & a$col2 == k),]
+    tmp = p[order(p[,5], decreasing = FALSE),]
+    merke_dataset = append(merke_dataset, which(a$r == tmp[order(tmp[,5], decreasing = FALSE), ][1,5]))
+  } 
+}
+
+scatter3D(bty = "b2", x = a[merke_dataset,1], xlab = "col1", y = a[merke_dataset,2], ylab = "col2", z = a[merke_dataset,5], zlab = "r", main = "text = col3; color = col4", cex = 1, pch = 19, theta = 10, phi = 10, colvar = a[merke_dataset,4],ticktype = "detailed")
+text3D(x= a[merke_dataset,1], y = a[merke_dataset,2], z = a[merke_dataset,5],  labels = round(a[merke_dataset,3],2),add = TRUE, colkey = FALSE, cex = 1)
+plotrgl()
+
 
 
 #Visualization of the Neural network model - helps to get a better understanding of how the model looks like
