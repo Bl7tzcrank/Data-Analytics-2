@@ -233,7 +233,7 @@ scalingData <- function(data){
 
 neuralNetwork4D <- function(data){
   set.seed(2);
-  NN = neuralnet(r ~ col1 + col2 + col3 + col4, data, hidden = c(4,4,4,4,4), linear.output= T, stepmax = 1e+6);
+  NN = neuralnet(r ~ col1 + col2 + col3 + col4, data, hidden = rep(c(100),100), linear.output= T, stepmax = 1e+6);
   return(NN);
 }
 
@@ -299,6 +299,7 @@ fun_SVM_4D = function(x1, x2, x3, x4,int_model){
 ###########################################################################
 ##################### Finding the minimum #################################
 ###########################################################################
+<<<<<<< HEAD
 findMin <- function(interval, limit, dimension){
   startx1 = 0
   endx1 = 1
@@ -376,6 +377,30 @@ findMin <- function(interval, limit, dimension){
 
 #valley2: 0.93;0.89;0.29,0.66
 #dataset = data.get.grid(0.85,0.95,0.85,0.95,0.25,0.35,0.60,0.70,2,token)
+=======
+dataset = getData(getGridData4D(0,1,0,1,0,1,0,1,4),token)
+scaledDataset = scalingData(dataset)
+NN <- neuralNetwork4D(dataset);
+predicted <- predictNNWOTEST4D(NN, getGridData4D(0,1,0,1,0,1,0,1,4))
+error <- dataset$r - predicted$r
+nn_error <- sqrt(mean(error^2))
+
+svm_tune <- tune(svm, r ~ col1+col2+col3+col4, data = scaledDataset, kernel = "radial", ranges = list(gamma = seq(0,1,0.25), epsilon = c(0,0.0001, 0.01, 0.1, 0.5, 1), cost = 2^(1:7)))
+svm_tune$best.performance
+svm_tune$best.parameters
+svm_model = svm_tune$best.model
+pred = getPredictionDataFrame4D(svm_model,getGridData4D(0,1,0,1,0,1,0,1,10))
+
+#Identifies the lowest r value per point in the grid
+merke = c()
+for (i in seq(0,1,by = 0.1)) {
+  for (k in seq(0,1, by = 0.1)) {
+    p = pred[which(pred$col1 == i & pred$col2 == k),]
+    tmp = p[order(p[,5], decreasing = FALSE),]
+    merke = append(merke, which(pred$r == tmp[ order(tmp[,5], decreasing = FALSE), ][1,5]))
+  } 
+}
+>>>>>>> a93bbd67ee20cf8deba9ad34c29a442824a524e2
 
 #valley3: 0.30;0.37;0.048,0.68
 #dataset = data.get.grid(0.25,0.35,0.35,0.45,0,0.1,0.65,0.75,2,token)
@@ -499,8 +524,8 @@ NN <- neuralNetwork(train);
 predicted <- predictNNWOTEST(NN, getGridData(0,1,0,1,20,2))
 error <- train$r - predicted$r
 
-NN <- neuralNetwork(dataset);
-predicted <- predictNNWOTEST(NN, getGridData2D(0,1,0,1,80))
+NN <- neuralNetwork4D(dataset);
+predicted <- predictNNWOTEST4D(NN, getGridData2D(0,1,0,1,80))
 error <- dataset$r - predicted$r
 
 nn_error <- sqrt(mean(error^2))
