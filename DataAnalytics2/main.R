@@ -30,8 +30,8 @@ source("support_vector_machines.R")
 
 ####################### Start of Variables ##################################
 url = 'http://optim.uni-muenster.de:5000/';
-operation = 'api/'
-test = FALSE;
+operation = 'api-test4D/'
+test = TRUE;
 #token
 token = '5d8096530da349e98ca4cc65b519daf7';
 
