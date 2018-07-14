@@ -30,8 +30,8 @@ source("support_vector_machines.R")
 
 ####################### Start of Variables ##################################
 url = 'http://optim.uni-muenster.de:5000/';
-operation = 'api-test4D/'
-test = TRUE;
+operation = 'api/'
+test = FALSE;
 #token
 token = '5d8096530da349e98ca4cc65b519daf7';
 
@@ -83,6 +83,28 @@ dataset = data.frame("col1"=NULL, "col2"=NULL, "col3"=NULL, "col4"=NULL, "r"=NUL
 #next step - create a grid - with interval 0.02
 #dataset = data.get.grid(0.69,0.73,0.51,0.55,0.37,0.41,0.73,0.77,2,token)
 #write.csv(dataset, file = "prod_3it4.csv")
+#results further improved - thats cool
+#Extend the landscape in on direction to check for further minimas
+#dataset = data.get.grid(0.67,0.71,0.51,0.55,0.37,0.41,0.73,0.77,2,token)
+#write.csv(dataset, file = "prod_3it5.csv")
+#based on new data new optimum for valley 3 has been calculated
+#next step retrieve the value
+#dataset = data.get.point(0.6789297, 0.5325574, 0.3808499, 0.7414746,token)
+#write.csv(dataset, file = "prod_3it6.csv")
+#retrieve first value for valley 2 predicted optima based on entire model
+#dataset = data.get.point(0.24269418, 0.1991316983, 0.4046623, 0.006489358,token)
+#write.csv(dataset, file = "prod_3it7.csv")
+#Test new valley (yellow one)
+#dataset = data.get.grid(0.6,0.7,0.9,1,0.25,0.35,0.58,0.68,2,token)
+#write.csv(dataset, file = "prod_4it1.csv")
+#values are rather bad
+#Test new valley (with only one point)
+#dataset = data.get.point(0.29820547, 0.9110710325, 0.6924902, 0.642203880,token)
+#write.csv(dataset, file = "prod_4it2.csv")
+#dive deeper into existing valleys: valley 3 - 0.005
+#dataset = data.get.grid(0.673,0.683,0.527,0.537,0.375,0.385,0.736,0.746,2,token)
+
+#write.csv(dataset, file = "prod_4it3.csv")
 
 
 ####################### End of Variables ##################################
@@ -305,18 +327,21 @@ subset_model_visualization <- function(col1_start,col2_start,col3_start,col4_sta
   #Create visualization
   print("Visualization is being created")
   pred = getPredictionDataFrame4D(model,getGridData4D(col1_start,col1_start+interval,col2_start,col2_start+interval,col3_start,col3_start+interval,col4_start,col4_start+interval,pred_interval))
-  merke = c()
-  for (i in seq(col1_start,col1_start+interval,by = interval/pred_interval)) {
-    for (k in seq(col2_start,col2_start+interval, by = interval/pred_interval)) {
-      p = pred[which(pred$col1 == i & pred$col2 == k),]
-      tmp = p[order(p[,5], decreasing = FALSE),]
-      merke = append(merke, which(pred$r == tmp[ order(tmp[,5], decreasing = FALSE), ][1,5] ))
-    } 
-  }
+  #merke = c()
+  #for (i in seq(col1_start,col1_start+interval,by = interval/pred_interval)) {
+  #  for (k in seq(col2_start,col2_start+interval, by = interval/pred_interval)) {
+  #    p = pred[which(pred$col1 == i & pred$col2 == k),]
+  #    tmp = p[order(p[,5], decreasing = FALSE),]
+  #    merke = append(merke, which(pred$r == tmp[ order(tmp[,5], decreasing = FALSE), ][1,5] ))
+  #  } 
+  #}
   
-  scatter3D(bty = "b2", x = pred[merke,1], xlab = "col1", y = pred[merke,2], ylab = "col2", z = pred[merke,5], zlab = "r", main = "text = col3; color = col4", cex = 1, pch = 19, theta = 10, phi = 10, colvar = pred[merke,4],ticktype = "detailed")
-  text3D(x= pred[merke,1], y = pred[merke,2], z = pred[merke,5],  labels = round(pred[merke,3],2),add = TRUE, colkey = FALSE, cex = 1)
+  scatter3D(bty = "b2", x = pred[,3], xlab = "col1", y = pred[,4], ylab = "col2", z = pred[,5], zlab = "r", main = "text = col3; color = col4", cex = 1, pch = 19, theta = 10, phi = 10, colvar = pred[,1],ticktype = "detailed")
+  text3D(x= pred[,3], y = pred[,4], z = pred[,5],  labels = round(pred[,2],2),add = TRUE, colkey = FALSE, cex = 1)
   plotrgl()
+  #scatter3D(bty = "b2", x = pred[merke,1], xlab = "col1", y = pred[merke,2], ylab = "col2", z = pred[merke,5], zlab = "r", main = "text = col3; color = col4", cex = 1, pch = 19, theta = 10, phi = 10, colvar = pred[merke,4],ticktype = "detailed")
+  #text3D(x= pred[merke,1], y = pred[merke,2], z = pred[merke,5],  labels = round(pred[merke,3],2),add = TRUE, colkey = FALSE, cex = 1)
+  #plotrgl()
   print("Visualization created")
   
   print("Search valleys")
@@ -352,7 +377,7 @@ model = subset_model_visualization(0.54,0.65,0.3,0.65,0.1,20)
 model = subset_model_visualization(0.8,0.0,0.8,0.6,0.2,20)
 
 #valley 3 adjusted
-model = subset_model_visualization(0.69,0.51,0.37,0.73,0.02,20)
+model = subset_model_visualization(0.67,0.51,0.37,0.73,0.04,20)
 
 model$best_tune$best.performance
 
