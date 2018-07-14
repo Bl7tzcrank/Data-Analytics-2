@@ -30,8 +30,8 @@ source("support_vector_machines.R")
 
 ####################### Start of Variables ##################################
 url = 'http://optim.uni-muenster.de:5000/';
-operation = 'api-4Dtest/'
-test = TRUE;
+operation = 'api/'
+test = FALSE;
 #token
 token = '5d8096530da349e98ca4cc65b519daf7';
 
@@ -42,24 +42,48 @@ dataset = data.frame("col1"=NULL, "col2"=NULL, "col3"=NULL, "col4"=NULL, "r"=NUL
 #grid_interval = (grid_end - grid_start)/20;
 #grid_dimensions = 2;
 
-secondIt = dataset
-
-#dataset = read.csv("prod.csv")
-
-
 #valley1
 #dataset = data.get.grid(0,0.1,0.75,0.85,0,0.1,0.69,0.79,2,token)
+#write.csv(dataset, file = "prod_2it1.csv")
 #valley2
 #dataset = data.get.grid(0.29,0.39,0.21,0.31,0.36,0.46,0.03,0.13,2,token)
+#write.csv(dataset, file = "prod_2it2.csv")
 #valley3
 #dataset = data.get.grid(0.54,0.64,0.65,0.75,0.3,0.4,0.65,0.75,2,token)
+#write.csv(dataset, file = "prod_2it3.csv")
 #Valley4
 #dataset = data.get.grid(0.9,1,0.1,0.2,0.9,1,0.6,0.7,2,token)
+#write.csv(dataset, file = "prod_2it4.csv")
+#Minima of valley 1
+#dataset = data.get.point(0.0492024897, 0.8481126516, 0.08903008945, 0.7310247013,token)
+#Minima of valley 4
+#dataset = data.get.point(0.9180070354, 0.1055761687, 0.9563065526,  0.7, token)
+#write.csv(dataset, file = "prod_2it5.csv")
+#Top2 Global Minima
+#dataset = data.get.point(0.04976414, 0.88142666, 0.1285623, 0.7764975,token)
+#dataset = data.get.point(0.87770071, 0.06131477, 0.9563864, 0.7592108,token)
+#write.csv(dataset, file = "prod_2it6.csv")
+#Two valley 1 assumptions
+#dataset = data.get.point(0.05, 0.87, 0.74, 0.09,token)
+#write.csv(dataset, file = "prod_2it7.csv")
+#dataset = data.get.point(0.05, 0.87, 0.09, 0.74,token)
+#write.csv(dataset, file = "prod_2it8.csv")
+#Minima of valley 4 - 2nd Zoom
+#dataset = data.get.grid(0.86,0.96,0.05,0.15,0.9,1,0.7,0.8,2,token)
+#write.csv(dataset, file = "prod_3it1.csv")
+#Valley 1 verification - no further optimzation required
+#dataset = data.get.point(0.0502497, 0.8660159, 0.09680179, 0.7618185,token)
+#write.csv(dataset, file = "prod_3it2.csv")
+#insight: no further analysis of valley 1 and 4 required
+#Based on global optima and visual exploration we assume that col1 and col2 were not optimal for finding the minimum of valley 3
+#therefore we retrieve the point for the predicted local optimum
+#dataset = data.get.point(0.71638473, 0.53252414, 0.3979821, 0.7525453,token)
+#write.csv(dataset, file = "prod_3it3.csv")
+#results of the valley 3 optima were very good
+#next step - create a grid - with interval 0.02
+#dataset = data.get.grid(0.69,0.73,0.51,0.55,0.37,0.41,0.73,0.77,2,token)
+#write.csv(dataset, file = "prod_3it4.csv")
 
-
-#dataset = data.get.point(0,0,0,0,token)
-
-write.csv(dataset, file = "prod_2it4.csv")
 
 ####################### End of Variables ##################################
 
@@ -129,18 +153,6 @@ getRandomData <- function(n, dimensions){
   colnames(c) <- paste("col", 1:dimensions, sep = "")
   return (c);
 }
-
-#returns the grid for API requests
-
-#getGridData2D <- function(startx, endx, starty, endy, interval){
-#  dx <- seq(startx,endx,(endx-startx)/interval);
-#  dy <- seq(starty, endy, (endy-starty)/interval);
-#    g <- expand.grid(dx,dy);
-#  
-#  colnames(g) <- paste("col", 1:2, sep = "")
-#  return(g);
-#}
-
 
 getGridData4D <- function(startx1, endx1, startx2, endx2, startx3, endx3, startx4, endx4, interval){
   dx1 <- seq(startx1,endx1,(endx1-startx1)/interval);
@@ -214,7 +226,6 @@ data.get.point <- function (col1,col2,col3,col4,token){
   }
 }
 
-
 #splits the data into trainings and test data. Returns index that can be used to access training and test data from the dataset
 #percentage % will be used for training
 splitData <- function(data, percentage){
@@ -236,39 +247,17 @@ scalingData <- function(data){
 ## NEURAL NETWORKS ###################
 ######################################
 
-#neuralNetwork2D <- function(data){
-#  set.seed(2);
-#  NN = neuralnet(r ~ col1 + col2, data, hidden = c(5,5,5), linear.output= T, stepmax = 1e+6);
-#  return(NN);
-#}
-
 neuralNetwork4D <- function(data){
   set.seed(2);
   NN = neuralnet(r ~ col1 + col2 + col3 + col4, data, hidden = rep(c(100),100), linear.output= T, stepmax = 1e+6);
   return(NN);
 }
 
-#plots predicted values vs test values and outputs rmse
-#predictNN <- function(NN, testData, data){
-#  predict_testNN = compute(NN, testData[,c(1:(ncol(data)-1))], rep = 1)
-#  predict_testNN = (predict_testNN$net.result * (max(data[,'r']) - min(data[,'r']))) + min(data[,'r'])
-#  plot(testData[,'r'], predict_testNN, col='blue', pch=16, ylab = "predicted r NN", xlab = "real r")
-#  abline(0,1)
-#  return((sum((testData[,'r'] - predict_testNN)^2) / nrow(testData)) ^ 0.5)
-#}
-
-
 #Makes a prediction based on the Neural network provided and returns a data frame consisting of input data and calculated outputs
 getPredictionDataFrame_NN = function(model, data){
   pred = compute(model, data, rep = 1)$net.result
   return(data.frame("col1" = data$col1, "col2" = data$col2, "r" = pred))
 }
-
-
-#predictNNWOTEST2D <-function(NN, data){
-#  predict_testNN = compute(NN, data, rep = 1)
-#  return (data.frame("col1" = data$col1, "col2" = data$col2, "r" = predict_testNN$net.result))
-#}
 
 predictNNWOTEST4D <-function(NN, data){
   predict_testNN = compute(NN, data, rep = 1)
@@ -282,11 +271,6 @@ predictNNWOTEST4D <-function(NN, data){
 createSVMModel = function(testData){
   return(model_svm <- svm(r ~ col1+col2 , testData))
 }
-
-#getPredictionDataFrame = function(model, data){
-#  pred = predict(model, data)
-#  return(data.frame("col1" = data$col1, "col2" = data$col2, "r" = pred))
-#}
 
 getPredictionDataFrame4D = function(model, data){
   pred = predict(model, data)
@@ -307,51 +291,6 @@ fun_SVM_4D = function(x1, x2, x3, x4,int_model){
   return(1 - predict(int_model, t))
 }
 
-dataset = getData(getGridData4D(0,1,0,1,0,1,0,1,4),token)
-scaledDataset = scalingData(dataset)
-NN <- neuralNetwork4D(dataset);
-predicted <- predictNNWOTEST4D(NN, getGridData4D(0,1,0,1,0,1,0,1,4))
-error <- dataset$r - predicted$r
-nn_error <- sqrt(mean(error^2))
-
-svm_tune <- tune(svm, r ~ col1+col2+col3+col4, data = scaledDataset, kernel = "radial", ranges = list(gamma = seq(0,1,0.25), epsilon = c(0,0.0001, 0.01, 0.1, 0.5, 1), cost = 2^(1:7)))
-svm_tune$best.performance
-svm_tune$best.parameters
-svm_model = svm_tune$best.model
-pred = getPredictionDataFrame4D(svm_model,getGridData4D(0,1,0,1,0,1,0,1,10))
-
-#Identifies the lowest r value per point in the grid
-merke = c()
-for (i in seq(0,1,by = 0.1)) {
-  for (k in seq(0,1, by = 0.1)) {
-    p = pred[which(pred$col1 == i & pred$col2 == k),]
-    tmp = p[order(p[,5], decreasing = FALSE),]
-    merke = append(merke, which(pred$r == tmp[ order(tmp[,5], decreasing = FALSE), ][1,5]))
-  } 
-}
-
-
-#valley3: 0.30;0.37;0.048,0.68
-#dataset = data.get.grid(0.25,0.35,0.35,0.45,0,0.1,0.65,0.75,2,token)
-
-#valley4: 0.73;0.73;0.91,0.03
-#dataset = data.get.grid(0.70,0.8,0.7,0.8,0.85,0.95,0.0,0.1,2,token)
-
-#valley5: 0.74;0.0;0.58,0.43
-#dataset = data.get.grid(0.7,0.8,0,0.1,0.55,0.65,0.4,0.5,2,token)
-
-#Round2 0.005 interval around the minimum
-#Valley 1 - 2 (0.05755738,0.1413581,0.695893,0.09862552,0.20149650)
-#dataset = data.get.grid(0.052,0.062,0.136,0.146,0.69,0.7,0.093,0.103,2,token)
-
-#Valley 2 - 2 (0.89422916,0.8938076,0.27002,0.662477,0.03811)
-#dataset = data.get.grid(0.889,0.899,0.889,0.899,0.265,0.275,0.657,0.667,2,token)
-
-#We should store the final dataset in form of a csv file
-#write.csv(dataset, file = "test.csv")
-
-#dataset = last_status_ds
-
 subset_model_visualization <- function(col1_start,col2_start,col3_start,col4_start,interval,pred_interval){
   subset_valley = subset.data.frame(dataset,dataset$col1>=col1_start&dataset$col1<=(col1_start+interval)&dataset$col2>=col2_start&dataset$col2<=(col2_start+interval)&dataset$col3>=col3_start&dataset$col3<=(col3_start+interval)&dataset$col4>=col4_start&dataset$col4<=(col4_start+interval))  
   print("Subset created")
@@ -371,12 +310,13 @@ subset_model_visualization <- function(col1_start,col2_start,col3_start,col4_sta
     for (k in seq(col2_start,col2_start+interval, by = interval/pred_interval)) {
       p = pred[which(pred$col1 == i & pred$col2 == k),]
       tmp = p[order(p[,5], decreasing = FALSE),]
-      merke = append(merke, which(pred$r == tmp[ order(tmp[,5], decreasing = FALSE), ][1,5]))
+      merke = append(merke, which(pred$r == tmp[ order(tmp[,5], decreasing = FALSE), ][1,5] ))
     } 
   }
-  #scatter3D(bty = "b2", x = pred[merke,1], xlab = "col1", y = pred[merke,2], ylab = "col2", z = pred[merke,5], zlab = "r", main = "text = col3; color = col4", cex = 1, pch = 19, theta = 10, phi = 10, colvar = pred[merke,4],ticktype = "detailed")
-  #text3D(x= pred[merke,1], y = pred[merke,2], z = pred[merke,5],  labels = round(pred[merke,3],2),add = TRUE, colkey = FALSE, cex = 1)
-  #plotrgl()
+  
+  scatter3D(bty = "b2", x = pred[merke,1], xlab = "col1", y = pred[merke,2], ylab = "col2", z = pred[merke,5], zlab = "r", main = "text = col3; color = col4", cex = 1, pch = 19, theta = 10, phi = 10, colvar = pred[merke,4],ticktype = "detailed")
+  text3D(x= pred[merke,1], y = pred[merke,2], z = pred[merke,5],  labels = round(pred[merke,3],2),add = TRUE, colkey = FALSE, cex = 1)
+  plotrgl()
   print("Visualization created")
   
   print("Search valleys")
@@ -392,57 +332,47 @@ subset_model_visualization <- function(col1_start,col2_start,col3_start,col4_sta
   valleys <- valleys[-which(duplicated(round(valleys,2))),]
   print("Valleys found")
   print("Done")
-  
-  return (list("subset" = subset_valley, "model" = model,"valleys" = valleys, "best_tune"=svm_tune ))
+  return (list("subset" = subset_valley, 
+               "model" = model,"valleys" = valleys, "best_tune"=svm_tune , 
+               "pred" = pred))
 }
+#Entire model
+model = subset_model_visualization(0,0,0,0,1,20)
 
+#Valley1
+model = subset_model_visualization(0,0.8,0,0.6,0.2,20)
 
-
-model = subset_model_visualization(0,0.75,0,0.69,0.1,20)
+#Valley2
 model = subset_model_visualization(0.29,0.21,0.36,0.03,0.1,20)
+
+#Valley3
 model = subset_model_visualization(0.54,0.65,0.3,0.65,0.1,20)
-model = subset_model_visualization(0.9,0.1,0.9,0.6,0.1,20)
 
+#Valley4
+model = subset_model_visualization(0.8,0.0,0.8,0.6,0.2,20)
 
-
-
+#valley 3 adjusted
+model = subset_model_visualization(0.69,0.51,0.37,0.73,0.02,20)
 
 model$best_tune$best.performance
 
-
 model$valleys
 
+plot(dataset[,c(1,2)])
+plot_ly(x = dataset[,1],y = dataset[,2],z = dataset[,5],color = dataset[,5])
 
-
+#Implementation of the Genetic Algorithm
 GA <- ga(type = "real-valued", fitness = function (x) {fun_SVM_4D(x[1],x[2],x[3],x[4],model$model)}, lower = c(0,0,0,0), upper = c(1,1,1,1), maxiter = 1000, run = 50)
-
 SVM_value = 1 - fun_SVM_4D(GA@solution[1],GA@solution[2],GA@solution[3],GA@solution[4],model$model)
-
 GA@solution
 
-#Visualization of the data; first col1/col2 as grid, then col3/clo4 as grid
-
-plot_ly(pred, x = pred[merke,1], y = pred[merke,2], z = pred[merke,5], text = pred[merke,3], color = pred[merke,4])
-
-
-scatter3D(bty = "b2", x = dataset[,1], xlab = "col1", y = dataset[,2], ylab = "col2", z = dataset[,5], zlab = "r", main = "text = col3; color = col4", cex = 1, pch = 19, theta = 10, phi = 10, colvar = dataset[,4],ticktype = "detailed")
-text3D(x= dataset[,1], y = dataset[,2], z = dataset[,5],  labels = round(dataset[,3],2),add = TRUE, colkey = FALSE, cex = 1)
-plotrgl()
-
-
-scatter3D(bty = "b2", x = pred[merke,1], xlab = "col1", y = pred[merke,2], ylab = "col2", z = pred[merke,5], zlab = "r", main = "text = col3; color = col4", cex = 1, pch = 19, theta = 10, phi = 10, colvar = pred[merke,4],ticktype = "detailed")
-text3D(x= pred[merke,1], y = pred[merke,2], z = pred[merke,5],  labels = round(pred[merke,3],2),add = TRUE, colkey = FALSE, cex = 1)
-plotrgl()
 
 #Based on the information derived from the visual representation, the GA has to be adjusted
 
 #Implementation of the Genetic Algorithm
-GA <- ga(type = "real-valued", fitness = function (x) {- fun_NN_4D(x[1],x[2],x[3],x[4])}, lower = c(0,0,0,0), upper = c(1,1,1,1), maxiter = 1000, run = 50)
-
+#GA <- ga(type = "real-valued", fitness = function (x) {- fun_NN_4D(x[1],x[2],x[3],x[4])}, lower = c(0,0,0,0), upper = c(1,1,1,1), maxiter = 1000, run = 50)
 GA <- ga(type = "real-valued", fitness = function (x) {fun_SVM_4D(x[1],x[2],x[3],x[4])}, lower = c(0,0,0,0), upper = c(1,1,1,1), maxiter = 1000, run = 50)
 
-#Real value retrieved from the API
-#dataset = data.get.point(GA@solution[,1],GA@solution[,2],GA@solution[,3],GA@solution[,4],token)
 
 #Value predicted by the respective models
 NN_value = fun_NN_4D(GA@solution[,1],GA@solution[,2],GA@solution[,3],GA@solution[,4])
@@ -462,17 +392,6 @@ cv <- xgb.cv(data = as.matrix(dataset),label =as.matrix(dataset[,5]) , nrounds =
 pred <- predict(bst, as.matrix(test[,-5]))
 
 pred <- predict(bst, as.matrix(getGridData4D(0,1,0,1,0,1,0,1,10)))
-
-typeof(pred)
-
-unlist(pred)
-
-
-
-as.data.frame(getGridData4D(0,1,0,1,0,1,0,1,10),pred[1])
-
-pred
-
 
 a = cbind(getGridData4D(0,1,0,1,0,1,0,1,10),data.frame("r" = unlist(pred)))
 
