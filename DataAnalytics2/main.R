@@ -279,73 +279,24 @@ subset_model_visualization <- function(col1_start,col2_start,col3_start,col4_sta
 
 ####################### Start of TEST API CODE ##################################
 #Retrieve initial grid
-dataset = data.get.grid(0,1,0,1,0,1,0,1,3,token)
+dataset.test = data.get.grid(0,1,0,1,0,1,0,1,3,token)
 
 #Method comparison based on initial dataset
 #SVM
+#3*var(dataset[,5])
+#epsilon
+var(dataset[,5])
+
+svm_tune <- tune(svm, r ~ col1+col2+col3+col4, data = dataset.test, kernel = "radial", ranges = list(gamma = seq(0,1,0.25), epsilon = c(0,0.0001, 0.01, 0.1, 0.5, 1), cost = 2^(1:7)))
+svm_mse = svm_tune$best.performance
 
 #Neural Networks
+#INPUT FROM JULIUS
 
 #Random Forests
+#INPUT FROM JULIUS
 
-#xgboost
-
-
-
-####################### End of TEST API CODE ##################################
-
-
-####################### Start of PROD API CODE ##################################
-#Retrieve initial grid
-dataset = data.get.grid(0,1,0,1,0,1,0,1,3,token)
-
-#First model creation and 
-model = subset_model_visualization(0,0,0,0,1,20)
-
-####################### End of PROD API CODE ##################################
-
-
-
-#Valley1
-model = subset_model_visualization(0,0.8,0,0.6,0.2,20)
-
-#Valley2
-model = subset_model_visualization(0.29,0.21,0.36,0.03,0.1,20)
-
-#Valley3
-model = subset_model_visualization(0.55,0.50,0.3,0.65,0.2,20)
-
-#Valley4
-model = subset_model_visualization(0.8,0.0,0.8,0.6,0.2,20)
-
-#valley 3 adjusted
-model = subset_model_visualization(0.67,0.51,0.37,0.73,0.04,20)
-
-model$best_tune$best.performance
-
-model$pred
-
-model$valleys
-
-
-plot(dataset[,c(1,2)])
-plot_ly(x = model$pred[,1],y = model$pred[,2],z = model$pred[,5],color = model$pred[,3], text = model$pred[,4])
-plot_ly(x = dataset[,3],y = dataset[,4],z = dataset[,5],color = dataset[,1], text = dataset[,2])
-
-#Implementation of the Genetic Algorithm
-GA <- ga(type = "real-valued", fitness = function (x) {fun_SVM_4D(x[1],x[2],x[3],x[4],model$model)}, lower = c(0,0,0,0), upper = c(1,1,1,1), maxiter = 1000, run = 50)
-SVM_value = 1 - fun_SVM_4D(GA@solution[1],GA@solution[2],GA@solution[3],GA@solution[4],model$model)
-GA@solution
-
-
-#Based on the information derived from the visual representation, the GA has to be adjusted
-
-#Implementation of the Genetic Algorithm
-GA <- ga(type = "real-valued", fitness = function (x) {fun_SVM_4D(x[1],x[2],x[3],x[4])}, lower = c(0,0,0,0), upper = c(1,1,1,1), maxiter = 1000, run = 50)
-
-#Value predicted by the respective models
-NN_value = fun_NN_4D(GA@solution[,1],GA@solution[,2],GA@solution[,3],GA@solution[,4])
-SVM_value = 1 - fun_SVM_4D(GA@solution[,1],GA@solution[,2],GA@solution[,3],GA@solution[,4])
+#xgboost - to be completed by Julian
 
 index <- splitData(dataset, 0.8);
 train <- (dataset[index,]);
@@ -364,100 +315,139 @@ pred <- predict(bst, as.matrix(getGridData4D(0,1,0,1,0,1,0,1,10)))
 
 a = cbind(getGridData4D(0,1,0,1,0,1,0,1,10),data.frame("r" = unlist(pred)))
 
-merke_dataset = c()
-for (i in seq(0,1,by = 0.1)) {
-  for (k in seq(0,1, by = 0.1)) {
-    p = a[which(a$col1 == i & a$col2 == k),]
-    tmp = p[order(p[,5], decreasing = FALSE),]
-    merke_dataset = append(merke_dataset, which(a$r == tmp[order(tmp[,5], decreasing = FALSE), ][1,5]))
-  } 
-}
-
-scatter3D(bty = "b2", x = a[merke_dataset,1], xlab = "col1", y = a[merke_dataset,2], ylab = "col2", z = a[merke_dataset,5], zlab = "r", main = "text = col3; color = col4", cex = 1, pch = 19, theta = 10, phi = 10, colvar = a[merke_dataset,4],ticktype = "detailed")
-text3D(x= a[merke_dataset,1], y = a[merke_dataset,2], z = a[merke_dataset,5],  labels = round(a[merke_dataset,3],2),add = TRUE, colkey = FALSE, cex = 1)
-plotrgl()
+cv <- xgb.cv(data = as.matrix(dataset),label = as.matrix(dataset.test[,5]) , nrounds = 20, nthread = 1, nfold = 10, metrics = "rmse",
+             max_depth = 12, eta = 0.5, objective = "reg:linear", prediction = TRUE, callbacks = list(cb.cv.predict(save_models = TRUE)))
 
 
+
+####################### End of TEST API CODE ##################################
+
+
+####################### Start of PROD API CODE ##################################
+#Retrieve initial grid and create initial model
+dataset = data.get.grid(0,1,0,1,0,1,0,1,3,token)
+
+model = subset_model_visualization(0,0,0,0,1,20)
+
+#Another verification of the methods for production data
+#SVM
+
+#Neural network
+
+#Random Forests
+
+#xgboost
+
+#The model identified 4 different valleys, for each a grid of interval 2 and range 0.1 was defined
+#The values for the grids were retrieved and further analysis was conducted on each valley
 
 #valley1
-#dataset = data.get.grid(0,0.1,0.75,0.85,0,0.1,0.69,0.79,2,token)
-#write.csv(dataset, file = "prod_2it1.csv")
+dataset = data.get.grid(0,0.1,0.75,0.85,0,0.1,0.69,0.79,2,token)
+model_valley1 = subset_model_visualization(0,0.8,0,0.6,0.1,20)
+
 #valley2
-#dataset = data.get.grid(0.29,0.39,0.21,0.31,0.36,0.46,0.03,0.13,2,token)
-#write.csv(dataset, file = "prod_2it2.csv")
+dataset = data.get.grid(0.29,0.39,0.21,0.31,0.36,0.46,0.03,0.13,2,token)
+model_valley2 = subset_model_visualization(0.29,0.21,0.36,0.03,0.1,20)
+
 #valley3
-#dataset = data.get.grid(0.54,0.64,0.65,0.75,0.3,0.4,0.65,0.75,2,token)
-#write.csv(dataset, file = "prod_2it3.csv")
+dataset = data.get.grid(0.54,0.64,0.65,0.75,0.3,0.4,0.65,0.75,2,token)
+model_valley3 = subset_model_visualization(0.55,0.50,0.3,0.65,0.1,20)
+
 #Valley4
-#dataset = data.get.grid(0.9,1,0.1,0.2,0.9,1,0.6,0.7,2,token)
-#write.csv(dataset, file = "prod_2it4.csv")
+dataset = data.get.grid(0.9,1,0.1,0.2,0.9,1,0.6,0.7,2,token)
+model_valley4 = subset_model_visualization(0.8,0.0,0.8,0.6,0.1,20)
+
+
+#Because of the small values of valley 1 and 4 we decided focus on those first and to retrieve the lowest point identified by the genetic algorithm
 #Minima of valley 1
-#dataset = data.get.point(0.0492024897, 0.8481126516, 0.08903008945, 0.7310247013,token)
+ga(type = "real-valued", fitness = function (x) {fun_SVM_4D(x[1],x[2],x[3],x[4],model_valley1$model)}, lower = c(0,0.75,0,0.69), upper = c(0.1,0.85,0.1,0.79), maxiter = 1000, run = 50)
+dataset = data.get.point(0.0492024897, 0.8481126516, 0.08903008945, 0.7310247013,token)
 #Minima of valley 4
-#dataset = data.get.point(0.9180070354, 0.1055761687, 0.9563065526,  0.7, token)
-#write.csv(dataset, file = "prod_2it5.csv")
-#Top2 Global Minima
-#dataset = data.get.point(0.04976414, 0.88142666, 0.1285623, 0.7764975,token)
-#dataset = data.get.point(0.87770071, 0.06131477, 0.9563864, 0.7592108,token)
-#write.csv(dataset, file = "prod_2it6.csv")
-#Two valley 1 assumptions
-#dataset = data.get.point(0.05, 0.87, 0.74, 0.09,token)
-#write.csv(dataset, file = "prod_2it7.csv")
-#dataset = data.get.point(0.05, 0.87, 0.09, 0.74,token)
-#write.csv(dataset, file = "prod_2it8.csv")
-#Minima of valley 4 - 2nd Zoom
-#dataset = data.get.grid(0.86,0.96,0.05,0.15,0.9,1,0.7,0.8,2,token)
-#write.csv(dataset, file = "prod_3it1.csv")
-#Valley 1 verification - no further optimzation required
-#dataset = data.get.point(0.0502497, 0.8660159, 0.09680179, 0.7618185,token)
-#write.csv(dataset, file = "prod_3it2.csv")
-#insight: no further analysis of valley 1 and 4 required
-#Based on global optima and visual exploration we assume that col1 and col2 were not optimal for finding the minimum of valley 3
-#therefore we retrieve the point for the predicted local optimum
-#dataset = data.get.point(0.71638473, 0.53252414, 0.3979821, 0.7525453,token)
-#write.csv(dataset, file = "prod_3it3.csv")
-#results of the valley 3 optima were very good
-#next step - create a grid - with interval 0.02
-#dataset = data.get.grid(0.69,0.73,0.51,0.55,0.37,0.41,0.73,0.77,2,token)
-#write.csv(dataset, file = "prod_3it4.csv")
-#results further improved - thats cool
-#Extend the landscape in on direction to check for further minimas
-#dataset = data.get.grid(0.67,0.71,0.51,0.55,0.37,0.41,0.73,0.77,2,token)
-#write.csv(dataset, file = "prod_3it5.csv")
-#based on new data new optimum for valley 3 has been calculated
-#next step retrieve the value
-#dataset = data.get.point(0.6789297, 0.5325574, 0.3808499, 0.7414746,token)
-#write.csv(dataset, file = "prod_3it6.csv")
-#retrieve first value for valley 2 predicted optima based on entire model
-#dataset = data.get.point(0.24269418, 0.1991316983, 0.4046623, 0.006489358,token)
-#write.csv(dataset, file = "prod_3it7.csv")
-#Test new valley (yellow one)
-#dataset = data.get.grid(0.6,0.7,0.9,1,0.25,0.35,0.58,0.68,2,token)
-#write.csv(dataset, file = "prod_4it1.csv")
-#values are rather bad
-#Test new valley (with only one point)
-#dataset = data.get.point(0.29820547, 0.9110710325, 0.6924902, 0.642203880,token)
-#write.csv(dataset, file = "prod_4it2.csv")
-#dive deeper into existing valleys: valley 3 - 0.005
-#dataset = data.get.grid(0.673,0.683,0.527,0.537,0.375,0.385,0.736,0.746,2,token)
-#write.csv(dataset, file = "prod_4it3.csv")
-#visual exploration for educated guessing
+ga(type = "real-valued", fitness = function (x) {fun_SVM_4D(x[1],x[2],x[3],x[4],model_valley1$model)}, lower = c(0.54,0.65,0.3,0.65), upper = c(0.64,0.75,0.4,0.75), maxiter = 1000, run = 50)
+dataset = data.get.point(0.9180070354, 0.1055761687, 0.9563065526,  0.7, token)
 
-#Use the last points
-#dataset = data.get.point(0.7, 0.4, 0.3, 0.5,token)
-#write.csv(dataset, file = "prod_5it1.csv")
-#dataset = data.get.point(0.7, 0.4, 0.3, 0.2,token)
-#write.csv(dataset, file = "prod_5it2.csv")
-#dataset = data.get.point(0.6790337, 0.5318569, 0.3818663, 0.7426143,token)
-#write.csv(test, file = "prod_6it2.csv")
+#After rather disappointing results we furthermore retrieved data for the two best minimums of the entire model
+#the values were extracted from an updated version of the initial model
+model_1it = subset_model_visualization(0,0,0,0,1,20)
+model_1it$valleys
+dataset = data.get.point(0.04976414, 0.88142666, 0.1285623, 0.7764975,token)
+dataset = data.get.point(0.87770071, 0.06131477, 0.9563864, 0.7592108,token)
 
-#dataset = data.get.point(0.6544189, 0.50442716, 0.3784510, 0.7440944,token)
-#write.csv(test, file = "prod_6it3.csv")
+#After poor results we focused on the analysis of the visual representation of valley 1
+#For valley 1 we retrieved one value, which was outside the retrieved grid in order to get a better understanding of the model
+dataset = data.get.point(0.05, 0.87, 0.09, 0.74,token)
 
-#dataset = data.get.point(0.2397695, 0.21076565, 0.3999436, 0.0000000,token)
+#After having a look at the updated visualization we thought that further improvement of valley 1 is unrealistic
+#Still we retrieved the value for the predicted minimum of an updated version of model_valley1 to verify our assumption
+model_valley1_1it = subset_model_visualization(0,0.8,0,0.6,0.2,20)
+ga(type = "real-valued", fitness = function (x) {fun_SVM_4D(x[1],x[2],x[3],x[4],model_valley1_1it$model)}, lower = c(0,0.8,0,0.6), upper = c(0.2,1,0.2,0.8), maxiter = 1000, run = 50)
+dataset = data.get.point(0.0502497, 0.8660159, 0.09680179, 0.7618185,token)
 
-#write.csv(test, file = "prod_6it4.csv")
+#The results were not improving, therefore we decided to switch to valley 4
+#In order to further explore valley 4 we decided to zoom in by retrieving data for a more granular defined grid
+dataset = data.get.grid(0.86,0.96,0.05,0.15,0.9,1,0.7,0.8,2,token)
+
+#Because of the retrieved data we concluded that no further improvement was possible and continued to valley 3
+#Based on the global optimum for valley 3 and visual exploration we assumed that col1 and col2 were not optimal for finding the minimum of valley 3
+#therefore we retrieved the point for the predicted local optimum
+model_2it = subset_model_visualization(0,0,0,0,1,20)
+model_2it$valleys
+dataset = data.get.point(0.71638473, 0.53252414, 0.3979821, 0.7525453,token)
+model_valley3_2it = subset_model_visualization(0.67,0.51,0.37,0.73,0.04,20)
+
+#Because of promising results of the valley 3 optima in the next step we created a grid with interval 0.02 around the new minimum
+
+dataset = data.get.grid(0.69,0.73,0.51,0.55,0.37,0.41,0.73,0.77,2,token)
+
+#The results slightly improved
+#Because of a visual exploration we decided to extent the landscape in one direction to check for further minimums
+model_valley3_3it = subset_model_visualization(0.67,0.51,0.37,0.73,0.04,20)
+dataset = data.get.grid(0.67,0.71,0.51,0.55,0.37,0.41,0.73,0.77,2,token)
+
+#Based on new data a new optimum for valley 3 has been calculated and the value has been retrieved
+model_valley3_4it = subset_model_visualization(0.67,0.51,0.37,0.73,0.04,20)
+dataset = data.get.point(0.6789297, 0.5325574, 0.3808499, 0.7414746,token)
+
+#Further zoom into valley3 with interval  0.005
+dataset = data.get.grid(0.673,0.683,0.527,0.537,0.375,0.385,0.736,0.746,2,token)
+
+#Because of no further improvement we turned to valley 2
+
+#We retrieved a value for valley 2 predicted minimum based on the prediction based on the entire dataset
+model_3it = subset_model_visualization(0,0,0,0,1,20)
+model_3it$valleys
+dataset = data.get.point(0.24269418, 0.1991316983, 0.4046623, 0.006489358,token)
+
+#Because of no improvement we tested two new valleys, which appeared in the meantime due to retrieved data
+dataset = data.get.grid(0.6,0.7,0.9,1,0.25,0.35,0.58,0.68,2,token)
+dataset = data.get.point(0.29820547, 0.9110710325, 0.6924902, 0.642203880,token)
+
+#Retrieved values were not promising and therefore no further time was spend on the valleys
 
 
+#Because no valley seemed to be promising we tried to identify potential valleys by plotting the actual dataset
+#and look for promising values, not adequately represented in the model
+#The last points were retrieved with a combination of visual exploration and valley prediction
+plot_ly(x = dataset[,1],y = dataset[,2],z = dataset[,5],color = dataset[,3], text = dataset[,4])
+plot_ly(x = dataset[,3],y = dataset[,4],z = dataset[,5],color = dataset[,1], text = dataset[,2])
 
-####################### End of executable code ##################################
+dataset = data.get.point(0.7, 0.4, 0.3, 0.5,token)
+dataset = data.get.point(0.7, 0.4, 0.3, 0.2,token)
+dataset = data.get.point(0.6790337, 0.5318569, 0.3818663, 0.7426143,token)
+dataset = data.get.point(0.6544189, 0.50442716, 0.3784510, 0.7440944,token)
+dataset = data.get.point(0.2397695, 0.21076565, 0.3999436, 0.0000000,token)
+dataset = data.get.grid(0.25,0.35,0.85,0.95,0.7,0.8,0.5,0.6,1,token)
+dataset = data.get.grid(0.25,0.35,0.2,0.4,0.5,0.6,0,0.1,1,token)
+dataset = data.get.grid(0.25,0.35,0.8,0.9,0.5,0.7,0.25,0.35,1,token)
+dataset = data.get.point(0.451733713, 0.45038490, 1.0000000, 0.735419410,token)
+dataset = data.get.point(0.654678013, 0.50326664, 0.3785781, 0.743538371,token)
+dataset = data.get.point(0.25, 0, 0.66, 0.1,token)
+dataset = data.get.point(0.25, 0.1, 0.66, 0.1,token)
+dataset = data.get.point(0.15, 0, 0.66, 0.1,token)
+dataset = data.get.point(0.2, 0, 0.66, 0.1,token)
+dataset = data.get.point(0.25, 0, 0.5, 0.05,token)
+
+#Store final dataset
+write.csv(dataset, file = "final.csv")
+
+####################### End of PROD API CODE ##################################

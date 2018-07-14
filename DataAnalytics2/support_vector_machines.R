@@ -1,9 +1,5 @@
 #imports
 install.packages("e1071")
-install.packages("plot3D")
-install.packages("plotly");
-require('plotly');
-require(plot3D)
 require(e1071)
 
 #Create a data frame of the data
