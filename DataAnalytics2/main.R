@@ -103,8 +103,18 @@ dataset = data.frame("col1"=NULL, "col2"=NULL, "col3"=NULL, "col4"=NULL, "r"=NUL
 #write.csv(dataset, file = "prod_4it2.csv")
 #dive deeper into existing valleys: valley 3 - 0.005
 #dataset = data.get.grid(0.673,0.683,0.527,0.537,0.375,0.385,0.736,0.746,2,token)
-
 #write.csv(dataset, file = "prod_4it3.csv")
+#visual exploration for educated guessing
+
+#Use the last points
+#dataset = data.get.point(0.7, 0.4, 0.3, 0.5,token)
+#write.csv(dataset, file = "prod_5it1.csv")
+#dataset = data.get.point(0.7, 0.4, 0.3, 0.2,token)
+#write.csv(dataset, file = "prod_5it2.csv")
+#dataset = data.get.point(0.6790337, 0.5318569, 0.3818663, 0.7426143,token)
+#write.csv(test, file = "prod_6it2.csv")
+
+
 
 
 ####################### End of Variables ##################################
@@ -327,21 +337,21 @@ subset_model_visualization <- function(col1_start,col2_start,col3_start,col4_sta
   #Create visualization
   print("Visualization is being created")
   pred = getPredictionDataFrame4D(model,getGridData4D(col1_start,col1_start+interval,col2_start,col2_start+interval,col3_start,col3_start+interval,col4_start,col4_start+interval,pred_interval))
-  #merke = c()
-  #for (i in seq(col1_start,col1_start+interval,by = interval/pred_interval)) {
-  #  for (k in seq(col2_start,col2_start+interval, by = interval/pred_interval)) {
-  #    p = pred[which(pred$col1 == i & pred$col2 == k),]
-  #    tmp = p[order(p[,5], decreasing = FALSE),]
-  #    merke = append(merke, which(pred$r == tmp[ order(tmp[,5], decreasing = FALSE), ][1,5] ))
-  #  } 
-  #}
+  merke = c()
+  for (i in seq(col1_start,col1_start+interval,by = interval/pred_interval)) {
+    for (k in seq(col2_start,col2_start+interval, by = interval/pred_interval)) {
+      p = pred[which(pred$col1 == i & pred$col2 == k),]
+      tmp = p[order(p[,5], decreasing = FALSE),]
+      merke = append(merke, which(pred$r == tmp[ order(tmp[,5], decreasing = FALSE), ][1,5] ))
+    } 
+  }
   
-  scatter3D(bty = "b2", x = pred[,3], xlab = "col1", y = pred[,4], ylab = "col2", z = pred[,5], zlab = "r", main = "text = col3; color = col4", cex = 1, pch = 19, theta = 10, phi = 10, colvar = pred[,1],ticktype = "detailed")
-  text3D(x= pred[,3], y = pred[,4], z = pred[,5],  labels = round(pred[,2],2),add = TRUE, colkey = FALSE, cex = 1)
-  plotrgl()
-  #scatter3D(bty = "b2", x = pred[merke,1], xlab = "col1", y = pred[merke,2], ylab = "col2", z = pred[merke,5], zlab = "r", main = "text = col3; color = col4", cex = 1, pch = 19, theta = 10, phi = 10, colvar = pred[merke,4],ticktype = "detailed")
-  #text3D(x= pred[merke,1], y = pred[merke,2], z = pred[merke,5],  labels = round(pred[merke,3],2),add = TRUE, colkey = FALSE, cex = 1)
+  #scatter3D(bty = "b2", x = pred[,3], xlab = "col1", y = pred[,4], ylab = "col2", z = pred[,5], zlab = "r", main = "text = col3; color = col4", cex = 1, pch = 19, theta = 10, phi = 10, colvar = pred[,1],ticktype = "detailed")
+  #text3D(x= pred[,3], y = pred[,4], z = pred[,5],  labels = round(pred[,2],2),add = TRUE, colkey = FALSE, cex = 1)
   #plotrgl()
+  scatter3D(bty = "b2", x = pred[merke,1], xlab = "col1", y = pred[merke,2], ylab = "col2", z = pred[merke,5], zlab = "r", main = "text = col3; color = col4", cex = 1, pch = 19, theta = 10, phi = 10, colvar = pred[merke,4],ticktype = "detailed")
+  text3D(x= pred[merke,1], y = pred[merke,2], z = pred[merke,5],  labels = round(pred[merke,3],2),add = TRUE, colkey = FALSE, cex = 1)
+  plotrgl()
   print("Visualization created")
   
   print("Search valleys")
@@ -371,7 +381,7 @@ model = subset_model_visualization(0,0.8,0,0.6,0.2,20)
 model = subset_model_visualization(0.29,0.21,0.36,0.03,0.1,20)
 
 #Valley3
-model = subset_model_visualization(0.54,0.65,0.3,0.65,0.1,20)
+model = subset_model_visualization(0.55,0.50,0.3,0.65,0.2,20)
 
 #Valley4
 model = subset_model_visualization(0.8,0.0,0.8,0.6,0.2,20)
@@ -383,8 +393,11 @@ model$best_tune$best.performance
 
 model$valleys
 
+
+
 plot(dataset[,c(1,2)])
-plot_ly(x = dataset[,1],y = dataset[,2],z = dataset[,5],color = dataset[,5])
+plot_ly(x = dataset[,1],y = dataset[,2],z = dataset[,5],color = dataset[,3], text = dataset[,4])
+plot_ly(x = dataset[,3],y = dataset[,4],z = dataset[,5],color = dataset[,1], text = dataset[,2])
 
 #Implementation of the Genetic Algorithm
 GA <- ga(type = "real-valued", fitness = function (x) {fun_SVM_4D(x[1],x[2],x[3],x[4],model$model)}, lower = c(0,0,0,0), upper = c(1,1,1,1), maxiter = 1000, run = 50)
