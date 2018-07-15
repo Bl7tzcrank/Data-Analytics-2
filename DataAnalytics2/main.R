@@ -19,19 +19,16 @@ install.packages('nloptr')
 install.packages('plot3D')
 install.packages('plot3Drgl')
 install.packages('sqldf')
-<<<<<<< HEAD
 install.packages('xgboost')
 install.packages('mlr')
-require('mlr')
-require('xgboost')
-=======
 install.packages('randomForest');
 install.packages('xgboost');
 install.packages("caret")
 require('randomForest');
 require('xgboost');
 require("caret")
->>>>>>> 96fb5632b32dba258274cc21ce446835ca5dd908
+require('mlr')
+require('xgboost')
 require('sqldf')
 require('plot3D')
 require('plot3Drgl')
@@ -45,8 +42,6 @@ require('XML')
 require('stringr')
 require('neuralnet')
 require('rpart')
-source("support_vector_machines.R")
-source("Tree.R")
 ####################### End of packages #####################################
 
 ####################### Start of Variables ##################################
@@ -308,11 +303,11 @@ svm_mse = svm_tune$best.performance
 #tuningGrid = expand.grid("layer1"=c(6:8),"layer2"=c(6:8),"layer3"=(6:8))
 #tuningGrid = expand.grid("layer1"=c(9:11),"layer2"=c(9:11),"layer3"=(9:11))
 tuningGrid = expand.grid("layer1"=c(12:15),"layer2"=c(12:15),"layer3"=(12:15))
-#testNN2 = train(r~col1+col2+col3+col4,data = dataset, method = "neuralnet", preProcess = "scale", metric = "RMSE", tuneGrid = tuningGrid,rep = 1,threshold = 0.01)
-#testNN3 = train(r~col1+col2+col3+col4,data = dataset, method = "neuralnet", preProcess = "scale", metric = "RMSE", tuneGrid = tuningGrid,rep = 1,threshold = 0.01)
-testNN4 = train(r~col1+col2+col3+col4,data = dataset, method = "neuralnet", preProcess = "scale", metric = "RMSE", tuneGrid = tuningGrid,rep = 1,threshold = 0.01)
-testNN5 = train(r~col1+col2+col3+col4,data = dataset, method = "neuralnet", preProcess = "scale", metric = "RMSE", tuneGrid = tuningGrid,rep = 1,threshold = 0.01)
-testNN6 = train(r~col1+col2+col3+col4,data = dataset, method = "neuralnet", preProcess = "scale", metric = "RMSE", tuneGrid = tuningGrid,rep = 1,threshold = 0.01)
+#testNN2 = train(r~col1+col2+col3+col4,data = dataset.test, method = "neuralnet", preProcess = "scale", metric = "RMSE", tuneGrid = tuningGrid,rep = 1,threshold = 0.01)
+#testNN3 = train(r~col1+col2+col3+col4,data = dataset.test, method = "neuralnet", preProcess = "scale", metric = "RMSE", tuneGrid = tuningGrid,rep = 1,threshold = 0.01)
+testNN4 = train(r~col1+col2+col3+col4,data = dataset.test, method = "neuralnet", preProcess = "scale", metric = "RMSE", tuneGrid = tuningGrid,rep = 1,threshold = 0.01)
+testNN5 = train(r~col1+col2+col3+col4,data = dataset.test, method = "neuralnet", preProcess = "scale", metric = "RMSE", tuneGrid = tuningGrid,rep = 1,threshold = 0.01)
+testNN6 = train(r~col1+col2+col3+col4,data = dataset.test, method = "neuralnet", preProcess = "scale", metric = "RMSE", tuneGrid = tuningGrid,rep = 1,threshold = 0.01)
 
 test_NN_results = rbind(testNN2$results, testNN3$results, testNN4$results, testNN5$results, testNN6$results)
 
@@ -370,8 +365,28 @@ svm_tune$best.parameters
 svm_mse = svm_tune$best.performance
 
 #Neural network
+#tuningGrid = expand.grid("layer1"=c(6:8),"layer2"=c(6:8),"layer3"=(1:3))
+#tuningGrid = expand.grid("layer1"=c(6:8),"layer2"=c(6:8),"layer3"=(3:5))
+#tuningGrid = expand.grid("layer1"=c(6:8),"layer2"=c(6:8),"layer3"=(6:8))
+#tuningGrid = expand.grid("layer1"=c(9:11),"layer2"=c(9:11),"layer3"=(9:11))
+tuningGrid = expand.grid("layer1"=c(12:15),"layer2"=c(12:15),"layer3"=(12:15))
+#testNN2 = train(r~col1+col2+col3+col4,data = dataset, method = "neuralnet", preProcess = "scale", metric = "RMSE", tuneGrid = tuningGrid,rep = 1,threshold = 0.01)
+#testNN3 = train(r~col1+col2+col3+col4,data = dataset, method = "neuralnet", preProcess = "scale", metric = "RMSE", tuneGrid = tuningGrid,rep = 1,threshold = 0.01)
+testNN4 = train(r~col1+col2+col3+col4,data = dataset, method = "neuralnet", preProcess = "scale", metric = "RMSE", tuneGrid = tuningGrid,rep = 1,threshold = 0.01)
+testNN5 = train(r~col1+col2+col3+col4,data = dataset, method = "neuralnet", preProcess = "scale", metric = "RMSE", tuneGrid = tuningGrid,rep = 1,threshold = 0.01)
+testNN6 = train(r~col1+col2+col3+col4,data = dataset, method = "neuralnet", preProcess = "scale", metric = "RMSE", tuneGrid = tuningGrid,rep = 1,threshold = 0.01)
+
+test_NN_results = rbind(testNN2$results, testNN3$results, testNN4$results, testNN5$results, testNN6$results)
 
 #Random Forests
+fitControl = trainControl(
+  method = "repeatedcv", 
+  number = 10,
+  repeats = 10)
+
+newrf = train (r ~ col1 + col2 + col3 + col4, data = dataset, method = "rf", trControl = fitControl)
+best_rf=newrf$finalModel
+best_rf
 
 #xgboost
 #Code is already described in the Test API part above
