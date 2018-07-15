@@ -305,6 +305,7 @@ tuningGrid = expand.grid("layer1"=c(6:8),"layer2"=c(6:8),"layer3"=(6:8))
 #testNN2 = train(r~col1+col2+col3+col4,data = dataset, method = "neuralnet", preProcess = "scale", metric = "RMSE", tuneGrid = tuningGrid,rep = 1,threshold = 0.01)
 #testNN3 = train(r~col1+col2+col3+col4,data = dataset, method = "neuralnet", preProcess = "scale", metric = "RMSE", tuneGrid = tuningGrid,rep = 1,threshold = 0.01)
 testNN4 = train(r~col1+col2+col3+col4,data = dataset, method = "neuralnet", preProcess = "scale", metric = "RMSE", tuneGrid = tuningGrid,rep = 1,threshold = 0.01)
+test_NN_results = rbind(testNN2$results, testNN3$results, testNN4$results)
 
 #Random Forests
 fitControl = trainControl(
