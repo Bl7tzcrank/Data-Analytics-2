@@ -218,6 +218,9 @@ testNN2 = train(r~col1+col2+col3+col4,data = dataset, method = "neuralnet", preP
 testNN3 = train(r~col1+col2+col3+col4,data = dataset, method = "neuralnet", preProcess = "scale", metric = "RMSE", tuneGrid = tuningGrid,rep = 1,threshold = 0.01)
 testNN4 = train(r~col1+col2+col3+col4,data = dataset, method = "neuralnet", preProcess = "scale", metric = "RMSE", tuneGrid = tuningGrid,rep = 1,threshold = 0.01)
 
+test_NN_results = rbind(testNN2$results, testNN3$results, testNN4$results)
+?data.frame
+?ga
 NN = neuralnet(r ~ col1 + col2 + col3 + col4, data = train, hidden = c(500), linear.output= T, stepmax = 1e+6)
 ?neuralnet
 NN$err.fct
