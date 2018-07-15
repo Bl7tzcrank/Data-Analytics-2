@@ -19,6 +19,10 @@ install.packages('nloptr')
 install.packages('plot3D')
 install.packages('plot3Drgl')
 install.packages('sqldf')
+install.packages('xgboost')
+install.packages('mlr')
+require('mlr')
+require('xgboost')
 require('sqldf')
 require('plot3D')
 require('plot3Drgl')
@@ -39,8 +43,8 @@ source("Tree.R")
 ####################### Start of Variables ##################################
 #Parameters for the connection to the production/test API
 url = 'http://optim.uni-muenster.de:5000/'
-operation = 'api/'
-test = FALSE;
+operation = 'api-test4D/'
+test = TRUE;
 token = '5d8096530da349e98ca4cc65b519daf7'
 ####################### End of Variables ####################################
 
@@ -283,11 +287,8 @@ dataset.test = data.get.grid(0,1,0,1,0,1,0,1,3,token)
 
 #Method comparison based on initial dataset
 #SVM
-#3*var(dataset[,5])
-#epsilon
-var(dataset[,5])
-
-svm_tune <- tune(svm, r ~ col1+col2+col3+col4, data = dataset.test, kernel = "radial", ranges = list(gamma = seq(0,1,0.25), epsilon = c(0,0.0001, 0.01, 0.1, 0.5, 1), cost = 2^(1:7)))
+svm_tune <- tune(svm, r ~ col1+col2+col3+col4, data = dataset.test, kernel = "radial", ranges = list(gamma = seq(0,1,0.25), epsilon = c(0,0.0001, 0.01, 0.1, 0.5, 1), cost = 2^(0:7)))
+svm_tune$best.parameters
 svm_mse = svm_tune$best.performance
 
 #Neural Networks
@@ -296,29 +297,31 @@ svm_mse = svm_tune$best.performance
 #Random Forests
 #INPUT FROM JULIUS
 
-#xgboost - to be completed by Julian
+#xgboost - tuning with mlr package
 
-index <- splitData(dataset, 0.8);
-train <- (dataset[index,]);
-test <- (dataset[-index,]);
+#create task
+traintask = makeRegrTask(data = dataset.test, target = "r")
 
-bst <-xgboost(data = as.matrix(train[,-5]), label = as.matrix(train[,5]), 
-              max_depth = 15, eta = 1, nthread = 1, nrounds = 30, booster = "gbtree",
-              objective = "reg:linear")
+#create learner
+lrn <- makeLearner("regr.xgboost",predict.type = "response")
+lrn$par.vals <- list( objective="reg:linear", eval_metric="rmse", nrounds=100L, nfold=10)
 
-cv <- xgb.cv(data = as.matrix(dataset),label =as.matrix(dataset[,5]) , nrounds = 20, nthread = 1, nfold = 10, metrics = "rmse",
-             max_depth = 12, eta = 0.5, objective = "reg:linear", prediction = TRUE, callbacks = list(cb.cv.predict(save_models = TRUE)))
+#set parameter space
+params <- makeParamSet( makeDiscreteParam("booster",values = c("gbtree","gblinear")), makeIntegerParam("max_depth",lower = 3L,upper = 12L), makeNumericParam("eta",lower = 0.1,upper = 1L), makeNumericParam("min_child_weight",lower = 1L,upper = 10L), makeNumericParam("subsample",lower = 0.5,upper = 1), makeNumericParam("colsample_bytree",lower = 0.5,upper = 1))
 
-pred <- predict(bst, as.matrix(test[,-5]))
+#set resampling strategy
+rdesc <- makeResampleDesc("CV",stratify = F,iters=5L)
 
-pred <- predict(bst, as.matrix(getGridData4D(0,1,0,1,0,1,0,1,10)))
+#search strategy
+ctrl <- makeTuneControlRandom(maxit = 50L)
 
-a = cbind(getGridData4D(0,1,0,1,0,1,0,1,10),data.frame("r" = unlist(pred)))
-
-cv <- xgb.cv(data = as.matrix(dataset),label = as.matrix(dataset.test[,5]) , nrounds = 20, nthread = 1, nfold = 10, metrics = "rmse",
-             max_depth = 12, eta = 0.5, objective = "reg:linear", prediction = TRUE, callbacks = list(cb.cv.predict(save_models = TRUE)))
-
-
+#run tune algorithm
+results_xgboost <- data.frame("booster"=NULL,"max_depth"=NULL,"eta"=NULL,"min_child_weight"=NULL,"subsample"=NULL,"colsample_bytree"=NULL, "mse.test" = NULL)
+for(i in 1 : 10){
+  mytune <- tuneParams(learner = lrn, task = traintask, resampling = rdesc, measures = mse, par.set = params, control = ctrl, show.info = F)
+  tmp <- data.frame("booster"=mytune$x$booster,"max_depth"=mytune$x$max_depth,"eta"=mytune$x$eta,"min_child_weight"=mytune$x$min_child_weight,"subsample"=mytune$x$subsample,"colsample_bytree"=mytune$x$colsample_bytree, "mse.test" = mytune$y)
+  results_xgboost = rbind(results_xgboost,tmp)
+}
 
 ####################### End of TEST API CODE ##################################
 
@@ -331,12 +334,28 @@ model = subset_model_visualization(0,0,0,0,1,20)
 
 #Another verification of the methods for production data
 #SVM
+svm_tune <- tune(svm, r ~ col1+col2+col3+col4, data = dataset, kernel = "radial", ranges = list(gamma = seq(0,1,0.25), epsilon = c(0,0.0001, 0.01, 0.1, 0.5, 1), cost = 2^(0:7)))
+svm_tune$best.parameters
+svm_mse = svm_tune$best.performance
 
 #Neural network
 
 #Random Forests
 
 #xgboost
+#Code is already described in the Test API part above
+traintask = makeRegrTask(data = dataset, target = "r")
+lrn <- makeLearner("regr.xgboost",predict.type = "response")
+lrn$par.vals <- list( objective="reg:linear", eval_metric="rmse", nrounds=100L, nfold=10)
+params <- makeParamSet( makeDiscreteParam("booster",values = c("gbtree","gblinear")), makeIntegerParam("max_depth",lower = 3L,upper = 12L), makeNumericParam("eta",lower = 0.1,upper = 1L), makeNumericParam("min_child_weight",lower = 1L,upper = 10L), makeNumericParam("subsample",lower = 0.5,upper = 1), makeNumericParam("colsample_bytree",lower = 0.5,upper = 1))
+rdesc <- makeResampleDesc("CV",stratify = F,iters=5L)
+ctrl <- makeTuneControlRandom(maxit = 50L)
+results_xgboost <- data.frame("booster"=NULL,"max_depth"=NULL,"eta"=NULL,"min_child_weight"=NULL,"subsample"=NULL,"colsample_bytree"=NULL, "mse.test" = NULL)
+for(i in 1 : 10){
+  mytune <- tuneParams(learner = lrn, task = traintask, resampling = rdesc, measures = mse, par.set = params, control = ctrl, show.info = F)
+  tmp <- data.frame("booster"=mytune$x$booster,"max_depth"=mytune$x$max_depth,"eta"=mytune$x$eta,"min_child_weight"=mytune$x$min_child_weight,"subsample"=mytune$x$subsample,"colsample_bytree"=mytune$x$colsample_bytree, "mse.test" = mytune$y)
+  results_xgboost = rbind(results_xgboost,tmp)
+}
 
 #The model identified 4 different valleys, for each a grid of interval 2 and range 0.1 was defined
 #The values for the grids were retrieved and further analysis was conducted on each valley
