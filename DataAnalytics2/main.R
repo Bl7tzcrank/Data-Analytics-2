@@ -19,6 +19,12 @@ install.packages('nloptr')
 install.packages('plot3D')
 install.packages('plot3Drgl')
 install.packages('sqldf')
+install.packages('randomForest');
+install.packages('xgboost');
+install.packages("caret")
+require('randomForest');
+require('xgboost');
+require("caret")
 require('sqldf')
 require('plot3D')
 require('plot3Drgl')
@@ -291,10 +297,24 @@ svm_tune <- tune(svm, r ~ col1+col2+col3+col4, data = dataset.test, kernel = "ra
 svm_mse = svm_tune$best.performance
 
 #Neural Networks
-#INPUT FROM JULIUS
+#Iterative Approach because of computational costs
+
+#tuningGrid = expand.grid("layer1"=c(6:8),"layer2"=c(6:8),"layer3"=(1:3))
+#tuningGrid = expand.grid("layer1"=c(6:8),"layer2"=c(6:8),"layer3"=(3:5))
+tuningGrid = expand.grid("layer1"=c(6:8),"layer2"=c(6:8),"layer3"=(6:8))
+#testNN2 = train(r~col1+col2+col3+col4,data = dataset, method = "neuralnet", preProcess = "scale", metric = "RMSE", tuneGrid = tuningGrid,rep = 1,threshold = 0.01)
+#testNN3 = train(r~col1+col2+col3+col4,data = dataset, method = "neuralnet", preProcess = "scale", metric = "RMSE", tuneGrid = tuningGrid,rep = 1,threshold = 0.01)
+testNN4 = train(r~col1+col2+col3+col4,data = dataset, method = "neuralnet", preProcess = "scale", metric = "RMSE", tuneGrid = tuningGrid,rep = 1,threshold = 0.01)
 
 #Random Forests
-#INPUT FROM JULIUS
+fitControl = trainControl(
+  method = "repeatedcv", 
+  number = 10,
+  repeats = 10)
+
+newrf = train (r ~ col1 + col2 + col3 + col4, data = dataset.test, method = "rf", trControl = fitControl)
+best_rf=newrf$finalModel
+best_rf
 
 #xgboost - to be completed by Julian
 
